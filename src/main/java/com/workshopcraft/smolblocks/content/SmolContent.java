@@ -56,8 +56,8 @@ public final class SmolContent {
     }
 
     public static void registerItems(BiConsumer<Identifier, Item> r) {
-        IRON_SAW = new SawItem(new Item.Properties().durability(250).setId(key("iron_saw")));
-        DIAMOND_SAW = new SawItem(new Item.Properties().durability(1561).setId(key("diamond_saw")));
+        IRON_SAW = new SawItem(SawItem.Tier.IRON, new Item.Properties().durability(250).setId(key("iron_saw")));
+        DIAMOND_SAW = new SawItem(SawItem.Tier.DIAMOND, new Item.Properties().durability(1561).setId(key("diamond_saw")));
         PIECE = new PieceItem(new Item.Properties().setId(key("piece")));
         r.accept(SmolBlocks.id("iron_saw"), IRON_SAW);
         r.accept(SmolBlocks.id("diamond_saw"), DIAMOND_SAW);

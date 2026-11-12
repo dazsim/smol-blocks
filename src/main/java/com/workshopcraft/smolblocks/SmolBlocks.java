@@ -9,6 +9,7 @@ public final class SmolBlocks {
     public static final String MOD_ID = "smolblocks";
     public static final TagKey<Block> CUTTABLE = TagKey.create(Registries.BLOCK, id("cuttable"));
     public static final TagKey<Block> UNCUTTABLE = TagKey.create(Registries.BLOCK, id("uncuttable"));
+    public static final TagKey<Block> NEEDS_DIAMOND_SAW = TagKey.create(Registries.BLOCK, id("needs_diamond_saw"));
 
     private SmolBlocks() {}
 

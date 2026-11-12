@@ -7,7 +7,7 @@ Cut basic blocks into slabs, vertical slabs, quarters and eighths with a saw, th
 - Iron Saw: stick, iron ingot, iron ingot in a row.
 - Diamond Saw: stick, diamond, diamond in a row. Lasts longer.
 
-The saw loses one durability per cut and stays in the grid.
+The saw loses one durability per cut and stays in the grid. Hard blocks in `smolblocks:needs_diamond_saw` (by default everything in `minecraft:needs_diamond_tool`, such as obsidian and ancient debris) need the diamond saw, and so do pieces cut from them.
 
 ## Cutting
 

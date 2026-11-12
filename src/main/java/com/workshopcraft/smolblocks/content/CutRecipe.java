@@ -46,6 +46,7 @@ public class CutRecipe extends CustomRecipe {
             source = Cuttable.sourceOf(stack);
             if (source == null) return null;
         }
+        if (!((SawItem) input.getItem(saw).getItem()).canCut(source)) return null;
         int w = input.width();
         boolean horizontal = saw % w == target % w;
         Shape result = Shape.cut(from, horizontal);
