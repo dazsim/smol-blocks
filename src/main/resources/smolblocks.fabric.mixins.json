@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.workshopcraft.smolblocks.fabric.mixin",
+  "compatibilityLevel": "JAVA_${mixin_java}",
+  "client": [
+    "MultiPlayerGameModeMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -1,6 +1,7 @@
 package com.workshopcraft.smolblocks.legacy.forge;
 
 import com.workshopcraft.smolblocks.SmolBlocks;
+import com.workshopcraft.smolblocks.content.PrecisionPickItem;
 import com.workshopcraft.smolblocks.content.SmolContent;
 import com.workshopcraft.smolblocks.legacy.client.LegacyCells;
 import com.workshopcraft.smolblocks.legacy.client.PieceBakedModel;
@@ -9,7 +10,11 @@ import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.level.BlockEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ModelEvent;
 import net.minecraftforge.client.event.RegisterColorHandlersEvent;
@@ -29,6 +34,10 @@ public class SmolBlocksForge {
             e.register(Registries.BLOCK_ENTITY_TYPE, h -> SmolContent.registerBlockEntities(h::register));
             e.register(Registries.RECIPE_SERIALIZER, h -> SmolContent.registerRecipeSerializers(h::register));
             e.register(Registries.CREATIVE_MODE_TAB, h -> SmolContent.registerTabs(h::register));
+        });
+        // Last, so protection mods get to cancel the break first
+        MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, false, BlockEvent.BreakEvent.class, e -> {
+            if (e.getLevel() instanceof Level level && PrecisionPickItem.breakPiece(level, e.getPos(), e.getPlayer())) e.setCanceled(true);
         });
         if (FMLEnvironment.dist == Dist.CLIENT) Client.init(modBus);
     }

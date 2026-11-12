@@ -66,9 +66,11 @@ tasks {
             "refmap" to "",
         )
         inputs.properties(props)
-        filesMatching(listOf("fabric.mod.json", "smolblocks.mixins.json")) { expand(props) }
+        filesMatching(listOf("fabric.mod.json", "smolblocks.mixins.json", "smolblocks.fabric.mixins.json")) { expand(props) }
         exclude("META-INF/neoforge.mods.toml", "META-INF/mods.toml")
         if (!modern) exclude("assets/smolblocks/items/**")
+        // Fabric builds the micro block models in code, and this file is in the NeoForge format
+        if (modern) exclude("assets/smolblocks/blockstates/micro.json")
         if (sc.current.parsed < "1.21") exclude("data/smolblocks/recipe/**", "data/smolblocks/tags/block/**")
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }

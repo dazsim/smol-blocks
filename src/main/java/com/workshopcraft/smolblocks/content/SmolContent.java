@@ -16,6 +16,11 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+//? if >=1.21.2 {
+import net.minecraft.world.item.ToolMaterial;
+//?} else {
+/*import net.minecraft.world.item.Tiers;
+*///?}
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -42,6 +47,8 @@ public final class SmolContent {
     public static BlockEntityType<MicroBlockEntity> MICRO_ENTITY;
     public static Item IRON_SAW;
     public static Item DIAMOND_SAW;
+    public static Item IRON_PRECISION_PICKAXE;
+    public static Item DIAMOND_PRECISION_PICKAXE;
     public static Item PIECE;
     public static CreativeModeTab TAB;
 
@@ -84,8 +91,17 @@ public final class SmolContent {
         IRON_SAW = new SawItem(SawItem.Tier.IRON, props("iron_saw").durability(250));
         DIAMOND_SAW = new SawItem(SawItem.Tier.DIAMOND, props("diamond_saw").durability(1561));
         PIECE = new PieceItem(props("piece"));
+        //? if >=1.21.2 {
+        IRON_PRECISION_PICKAXE = new PrecisionPickItem(props("iron_precision_pickaxe").pickaxe(ToolMaterial.IRON, 1.0F, -2.8F));
+        DIAMOND_PRECISION_PICKAXE = new PrecisionPickItem(props("diamond_precision_pickaxe").pickaxe(ToolMaterial.DIAMOND, 1.0F, -2.8F));
+        //?} else {
+        /*IRON_PRECISION_PICKAXE = new PrecisionPickItem(Tiers.IRON, props("iron_precision_pickaxe"));
+        DIAMOND_PRECISION_PICKAXE = new PrecisionPickItem(Tiers.DIAMOND, props("diamond_precision_pickaxe"));
+        *///?}
         r.accept(SmolBlocks.id("iron_saw"), IRON_SAW);
         r.accept(SmolBlocks.id("diamond_saw"), DIAMOND_SAW);
+        r.accept(SmolBlocks.id("iron_precision_pickaxe"), IRON_PRECISION_PICKAXE);
+        r.accept(SmolBlocks.id("diamond_precision_pickaxe"), DIAMOND_PRECISION_PICKAXE);
         r.accept(SmolBlocks.id("piece"), PIECE);
     }
 
@@ -111,6 +127,8 @@ public final class SmolContent {
                 .displayItems((params, out) -> {
                     out.accept(IRON_SAW);
                     out.accept(DIAMOND_SAW);
+                    out.accept(IRON_PRECISION_PICKAXE);
+                    out.accept(DIAMOND_PRECISION_PICKAXE);
                     for (Block b : SAMPLES) {
                         BlockState s = b.defaultBlockState();
                         if (!Cuttable.test(s)) continue;

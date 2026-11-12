@@ -1,0 +1,1 @@
+{ "parent": "minecraft:item/handheld", "textures": { "layer0": "smolblocks:item/iron_precision_pickaxe" } }

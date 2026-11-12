@@ -18,7 +18,8 @@
         ]
     },
     "mixins": [
-        "smolblocks.mixins.json"
+        "smolblocks.mixins.json",
+        "smolblocks.fabric.mixins.json"
     ],
     "depends": {
         "fabricloader": ">=${loader}",

@@ -2,6 +2,8 @@ package com.workshopcraft.smolblocks.content;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
@@ -22,9 +24,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
-import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -173,6 +173,10 @@ public class MicroBlock extends Block implements EntityBlock, SimpleWaterloggedB
     @Override
     public float getDestroyProgress(BlockState state, Player player, BlockGetter level, BlockPos pos) {
         if (!(level.getBlockEntity(pos) instanceof MicroBlockEntity be)) return super.getDestroyProgress(state, player, level, pos);
+        if (PrecisionPickItem.held(player)) {
+            int cell = PrecisionPickItem.aimedCell(player, pos);
+            if (cell >= 0 && be.cell(cell) != null) return be.cell(cell).getDestroyProgress(player, level, pos);
+        }
         float slowest = Float.MAX_VALUE;
         for (int i = 0; i < 8; i++) {
             BlockState s = be.cell(i);
@@ -202,6 +206,10 @@ public class MicroBlock extends Block implements EntityBlock, SimpleWaterloggedB
     private static boolean wouldDrop(BlockState source, @Nullable Player player, LootParams.Builder params) {
         if (player != null && !player.hasCorrectToolForDrops(source)) return false;
         return !source.getDrops(params).isEmpty();
+    }
+
+    public static boolean wouldDrop(BlockState source, Player player, ServerLevel level, BlockPos pos, ItemStack tool) {
+        return player.hasCorrectToolForDrops(source) && !Block.getDrops(source, level, pos, null, player, tool).isEmpty();
     }
 
     public static List<ItemStack> drops(MicroBlockEntity be) {
@@ -245,13 +253,8 @@ public class MicroBlock extends Block implements EntityBlock, SimpleWaterloggedB
 
     /** The piece under a hit on this space, or the first piece when the hit misses every cell. */
     private static ItemStack pieceHit(BlockGetter level, BlockPos pos, @Nullable HitResult hit) {
-        if (level.getBlockEntity(pos) instanceof MicroBlockEntity be && hit instanceof BlockHitResult bh && bh.getBlockPos().equals(pos)) {
-            Direction d = bh.getDirection();
-            Vec3 p = bh.getLocation().subtract(d.getStepX() * 0.001, d.getStepY() * 0.001, d.getStepZ() * 0.001)
-                    .subtract(pos.getX(), pos.getY(), pos.getZ());
-            int cell = Cells.index(p.x >= 0.5 ? 1 : 0, p.y >= 0.5 ? 1 : 0, p.z >= 0.5 ? 1 : 0);
-            if (be.cell(cell) != null) return pieceAt(be, cell);
-        }
+        int cell = PrecisionPickItem.cellAt(pos, hit);
+        if (cell >= 0 && level.getBlockEntity(pos) instanceof MicroBlockEntity be && be.cell(cell) != null) return pieceAt(be, cell);
         return firstPiece(level, pos);
     }
 
@@ -286,6 +289,21 @@ public class MicroBlock extends Block implements EntityBlock, SimpleWaterloggedB
     /*@Override
     public ItemStack getCloneItemStack(BlockState state, HitResult target, BlockGetter level, BlockPos pos, Player player) {
         return pieceHit(level, pos, target);
+    }
+    *///?}
+
+    // The client would remove the whole space while the server breaks one piece, so it leaves the space alone
+    //? if neoforge && >=26.1 {
+    @Override
+    public boolean onDestroyedByPlayer(BlockState state, Level level, BlockPos pos, Player player, ItemStack tool, boolean willHarvest, FluidState fluid) {
+        if (level.isClientSide() && PrecisionPickItem.breakPiece(level, pos, player)) return false;
+        return super.onDestroyedByPlayer(state, level, pos, player, tool, willHarvest, fluid);
+    }
+    //?} else if neoforge || forge {
+    /*@Override
+    public boolean onDestroyedByPlayer(BlockState state, Level level, BlockPos pos, Player player, boolean willHarvest, FluidState fluid) {
+        if (level.isClientSide() && PrecisionPickItem.breakPiece(level, pos, player)) return false;
+        return super.onDestroyedByPlayer(state, level, pos, player, willHarvest, fluid);
     }
     *///?}
 

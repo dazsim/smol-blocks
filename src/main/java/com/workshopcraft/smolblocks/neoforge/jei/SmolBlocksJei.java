@@ -66,6 +66,8 @@ public class SmolBlocksJei implements IModPlugin {
         r.addRecipes(RecipeTypes.CRAFTING, recipes);
         r.addItemStackInfo(List.of(new ItemStack(SmolContent.IRON_SAW), new ItemStack(SmolContent.DIAMOND_SAW)),
                 Component.translatable("jei.smolblocks.saw"));
+        r.addItemStackInfo(List.of(new ItemStack(SmolContent.IRON_PRECISION_PICKAXE), new ItemStack(SmolContent.DIAMOND_PRECISION_PICKAXE)),
+                Component.translatable("jei.smolblocks.precision_pickaxe"));
     }
 
     private static RecipeHolder<CraftingRecipe> example(Block block, @Nullable Shape from, boolean horizontal, Ingredient saws, Ingredient input, ItemStack result) {

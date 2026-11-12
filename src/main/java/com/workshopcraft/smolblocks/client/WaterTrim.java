@@ -5,6 +5,8 @@ import com.workshopcraft.smolblocks.content.Cells;
 import net.minecraft.client.renderer.block.FluidRenderer;
 import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Fluid output for a waterlogged micro block space. Each water quad is split at the cell boundaries and
@@ -12,13 +14,21 @@ import net.minecraft.core.BlockPos;
  */
 public final class WaterTrim implements FluidRenderer.Output {
     private final FluidRenderer.Output output;
-    private final int mask, opaque;
+    private final int mask, opaque, neighbour;
+    private final @Nullable Direction side;
     private final float baseX, baseY, baseZ;
 
     public WaterTrim(FluidRenderer.Output output, int mask, int opaque, BlockPos pos) {
+        this(output, mask, opaque, pos, null, 0);
+    }
+
+    /** A pass for one side the renderer would skip, keeping what meets the see-through cells of the next space. */
+    public WaterTrim(FluidRenderer.Output output, int mask, int opaque, BlockPos pos, @Nullable Direction side, int neighbour) {
         this.output = output;
         this.mask = mask;
         this.opaque = opaque;
+        this.side = side;
+        this.neighbour = neighbour;
         this.baseX = pos.getX() & 15;
         this.baseY = pos.getY() & 15;
         this.baseZ = pos.getZ() & 15;
@@ -62,6 +72,7 @@ public final class WaterTrim implements FluidRenderer.Output {
 
         private void quad() {
             int axis = planeAxis();
+            if (side != null && !Cells.onSide(side, axis, (pos[0][axis] + pos[2][axis]) / 2 - (axis == 0 ? baseX : axis == 1 ? baseY : baseZ))) return;
             float[] s = splits(pos[0], pos[3], pos[1], pos[2]);
             float[] t = splits(pos[0], pos[1], pos[3], pos[2]);
             for (int i = 0; i + 1 < s.length; i++) {
@@ -69,13 +80,9 @@ public final class WaterTrim implements FluidRenderer.Output {
                     float s0 = s[i], s1 = s[i + 1], t0 = t[j], t1 = t[j + 1];
                     float[] c = lerp((s0 + s1) / 2, (t0 + t1) / 2);
                     int cell = Cells.index(c[0] - baseX >= 0.5F ? 1 : 0, c[1] - baseY >= 0.5F ? 1 : 0, c[2] - baseZ >= 0.5F ? 1 : 0);
-                    float shift = 0.0F;
-                    if ((mask & 1 << cell) != 0) {
-                        // A face on the outside of a see-through filled cell moves in to the water cell behind it
-                        if ((opaque & 1 << cell) != 0 || (mask & 1 << (cell ^ 1 << axis)) != 0) continue;
-                        float rel = c[axis] - (axis == 0 ? baseX : axis == 1 ? baseY : baseZ);
-                        shift = rel < 0.5F ? 0.5F : axis == 1 ? 0.499F - rel : -0.5F;
-                    }
+                    float rel = c[axis] - (axis == 0 ? baseX : axis == 1 ? baseY : baseZ);
+                    float shift = Cells.waterShift(mask, opaque, side, neighbour, cell, axis, rel);
+                    if (Float.isNaN(shift)) continue;
                     emit(s0, t0, axis, shift);
                     emit(s1, t0, axis, shift);
                     emit(s1, t1, axis, shift);

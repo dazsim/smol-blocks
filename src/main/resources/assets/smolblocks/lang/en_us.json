@@ -2,6 +2,8 @@
   "itemGroup.smolblocks": "Smol Blocks",
   "item.smolblocks.iron_saw": "Iron Saw",
   "item.smolblocks.diamond_saw": "Diamond Saw",
+  "item.smolblocks.iron_precision_pickaxe": "Iron Precision Pickaxe",
+  "item.smolblocks.diamond_precision_pickaxe": "Diamond Precision Pickaxe",
   "item.smolblocks.piece": "Smol Piece",
   "item.smolblocks.piece.slab": "%s Slab",
   "item.smolblocks.piece.vertical_slab": "%s Vertical Slab",
@@ -9,5 +11,6 @@
   "item.smolblocks.piece.vertical_quarter": "%s Vertical Quarter",
   "item.smolblocks.piece.eighth": "%s Eighth",
   "block.smolblocks.micro": "Smol Block",
-  "jei.smolblocks.saw": "Put a saw and a block or piece in a crafting grid to cut it in two. A saw above or below cuts it flat, a saw beside or diagonal cuts it upright. Hard blocks such as obsidian need the diamond saw."
+  "jei.smolblocks.saw": "Put a saw and a block or piece in a crafting grid to cut it in two. A saw above or below cuts it flat, a saw beside or diagonal cuts it upright. Hard blocks such as obsidian need the diamond saw.",
+  "jei.smolblocks.precision_pickaxe": "Mines one piece of a Smol Block at a time: the piece you are looking at. It drops that piece the way the source block would drop, and the last piece leaves air or water behind. On other blocks it works like a normal pickaxe of its tier."
 }

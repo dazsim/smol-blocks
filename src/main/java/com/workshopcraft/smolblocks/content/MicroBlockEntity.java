@@ -62,13 +62,29 @@ public class MicroBlockEntity extends BlockEntity {
 
     public void fill(int mask, BlockState source) {
         for (int i = 0; i < 8; i++) if ((mask & 1 << i) != 0) cells[i] = source;
+        updateState();
+        changed();
+    }
+
+    /** Empties one cell. Emptying the last one leaves water or air. */
+    public void clear(int cell) {
+        cells[cell] = null;
+        if (mask() == 0 && level != null && !level.isClientSide()) {
+            boolean water = getBlockState().getValue(MicroBlock.WATERLOGGED);
+            level.setBlock(worldPosition, water ? Blocks.WATER.defaultBlockState() : Blocks.AIR.defaultBlockState(), 3);
+            return;
+        }
+        updateState();
+        changed();
+    }
+
+    private void updateState() {
         if (level != null && !level.isClientSide() && getBlockState().getBlock() instanceof MicroBlock block) {
             BlockState old = getBlockState();
             BlockState state = block.stateFor(cells, old.getValue(MicroBlock.WATERLOGGED));
             if (state != old) level.setBlock(worldPosition, state, 3);
             else level.updateNeighborsAt(worldPosition, block);
         }
-        changed();
     }
 
     /** First filled cell, used for sounds, particles and hardness. */
@@ -200,6 +216,13 @@ public class MicroBlockEntity extends BlockEntity {
         public int mask() {
             int m = 0;
             for (int i = 0; i < 8; i++) if (states[i] != null) m |= 1 << i;
+            return m;
+        }
+
+        /** Filled cells that hide what is behind them. */
+        public int opaque() {
+            int m = 0;
+            for (int i = 0; i < 8; i++) if (states[i] != null && Cuttable.solid(states[i])) m |= 1 << i;
             return m;
         }
 

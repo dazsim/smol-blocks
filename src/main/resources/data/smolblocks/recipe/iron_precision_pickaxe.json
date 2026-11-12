@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": ["HHN", " | ", " | "],
+  "key": { "H": "minecraft:iron_ingot", "N": "minecraft:iron_nugget", "|": "minecraft:stick" },
+  "result": { "id": "smolblocks:iron_precision_pickaxe", "count": 1 }
+}
