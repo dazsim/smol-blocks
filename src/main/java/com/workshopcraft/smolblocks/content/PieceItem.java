@@ -14,6 +14,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
 
 public class PieceItem extends Item {
@@ -97,7 +98,10 @@ public class PieceItem extends Item {
         if (be == null) {
             BlockState[] cells = new BlockState[8];
             for (int i = 0; i < 8; i++) if ((pl.mask() & 1 << i) != 0) cells[i] = source;
-            if (!level.setBlock(pos, ((MicroBlock) SmolContent.MICRO).stateFor(cells), 3)) return InteractionResult.FAIL;
+            boolean water = here.getFluidState().is(Fluids.WATER);
+            BlockState state = ((MicroBlock) SmolContent.MICRO).stateFor(cells, water);
+            if (!level.setBlock(pos, state, 3)) return InteractionResult.FAIL;
+            if (water) level.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
             if (!(level.getBlockEntity(pos) instanceof MicroBlockEntity m)) return InteractionResult.FAIL;
             be = m;
         }

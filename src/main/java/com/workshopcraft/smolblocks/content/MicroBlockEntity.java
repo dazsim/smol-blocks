@@ -51,8 +51,10 @@ public class MicroBlockEntity extends BlockEntity {
     public void fill(int mask, BlockState source) {
         for (int i = 0; i < 8; i++) if ((mask & 1 << i) != 0) cells[i] = source;
         if (level != null && !level.isClientSide() && getBlockState().getBlock() instanceof MicroBlock block) {
-            BlockState state = block.stateFor(cells);
-            if (state != getBlockState()) level.setBlock(worldPosition, state, 3);
+            BlockState old = getBlockState();
+            BlockState state = block.stateFor(cells, old.getValue(MicroBlock.WATERLOGGED));
+            if (state != old) level.setBlock(worldPosition, state, 3);
+            else level.updateNeighborsAt(worldPosition, block);
         }
         changed();
     }

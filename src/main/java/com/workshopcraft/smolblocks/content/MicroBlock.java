@@ -2,6 +2,16 @@ package com.workshopcraft.smolblocks.content;
 
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.ScheduledTickAccess;
+import net.minecraft.world.level.block.SimpleWaterloggedBlock;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -37,14 +47,15 @@ import java.util.Map;
  * occlusion, neighbour face culling and emission work from vanilla's state caches. Everything else
  * comes from the block entity.
  */
-public class MicroBlock extends Block implements EntityBlock {
+public class MicroBlock extends Block implements EntityBlock, SimpleWaterloggedBlock {
     public static final MapCodec<MicroBlock> CODEC = simpleCodec(MicroBlock::new);
     public static final IntegerProperty OPAQUE = IntegerProperty.create("opaque", 0, 255);
     public static final IntegerProperty LIGHT = IntegerProperty.create("light", 0, 15);
+    public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 
     public MicroBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(OPAQUE, 0).setValue(LIGHT, 0));
+        registerDefaultState(stateDefinition.any().setValue(OPAQUE, 0).setValue(LIGHT, 0).setValue(WATERLOGGED, false));
     }
 
     @Override
@@ -54,19 +65,20 @@ public class MicroBlock extends Block implements EntityBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(OPAQUE, LIGHT);
+        builder.add(OPAQUE, LIGHT, WATERLOGGED);
     }
 
-    /** The state matching a set of cells. */
-    public BlockState stateFor(@Nullable BlockState[] cells) {
-        int opaque = 0, light = 0;
+    /** The state matching a set of cells. A space with every cell filled has no room for water. */
+    public BlockState stateFor(@Nullable BlockState[] cells, boolean waterlogged) {
+        int opaque = 0, light = 0, filled = 0;
         for (int i = 0; i < 8; i++) {
             BlockState s = cells[i];
             if (s == null) continue;
+            filled |= 1 << i;
             if (s.isSolidRender()) opaque |= 1 << i;
             light = Math.max(light, s.getLightEmission());
         }
-        return defaultBlockState().setValue(OPAQUE, opaque).setValue(LIGHT, light);
+        return defaultBlockState().setValue(OPAQUE, opaque).setValue(LIGHT, light).setValue(WATERLOGGED, waterlogged && filled != 255);
     }
 
     @Override
@@ -101,7 +113,25 @@ public class MicroBlock extends Block implements EntityBlock {
 
     @Override
     protected boolean propagatesSkylightDown(BlockState state) {
-        return state.getValue(OPAQUE) != 255;
+        return state.getValue(OPAQUE) != 255 && !state.getValue(WATERLOGGED);
+    }
+
+    @Override
+    protected FluidState getFluidState(BlockState state) {
+        return state.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
+    }
+
+    @Override
+    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos, Direction direction,
+                                     BlockPos neighbourPos, BlockState neighbourState, RandomSource random) {
+        if (state.getValue(WATERLOGGED)) ticks.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
+        return super.updateShape(state, level, ticks, pos, direction, neighbourPos, neighbourState, random);
+    }
+
+    // Water flow between spaces uses the collision shape, so a face only holds water back when its 4 cells are filled
+    @Override
+    public boolean canPlaceLiquid(@Nullable LivingEntity user, BlockGetter level, BlockPos pos, BlockState state, Fluid fluid) {
+        return fluid == Fluids.WATER && mask(level, pos) != 255;
     }
 
     @Override

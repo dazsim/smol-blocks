@@ -29,6 +29,8 @@ Pieces go into the half or quarter of the space nearest where you click. Vertica
 
 Opaque pieces block light like the full block would on their faces, and pieces cut from glowing blocks give off light.
 
+A space with any empty cell can hold water, like a vanilla slab. Placing a piece into water keeps the water, and buckets work as usual. A face only holds water back when all 4 cells touching it are filled, so a bottom slab keeps water above it and glass vertical slabs make a fish tank wall. A completely filled space holds no water.
+
 ## Which blocks can be cut
 
 Full cube, solid, no block entity. Tags `smolblocks:cuttable` (always allowed, glass and stained glass by default) and `smolblocks:uncuttable` (never allowed, such as redstone and utility blocks) override this.
