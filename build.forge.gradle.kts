@@ -56,7 +56,7 @@ tasks {
         )
         inputs.properties(props)
         filesMatching(listOf("META-INF/mods.toml", "pack.mcmeta")) { expand(props) }
-        exclude("fabric.mod.json", "META-INF/neoforge.mods.toml")
+        exclude("fabric.mod.json", "META-INF/neoforge.mods.toml", "smolblocks.mixins.json")
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
 

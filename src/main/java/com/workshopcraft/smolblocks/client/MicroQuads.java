@@ -1,5 +1,6 @@
 package com.workshopcraft.smolblocks.client;
 
+import com.workshopcraft.smolblocks.SmolBlocks;
 import com.workshopcraft.smolblocks.content.Cells;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.builders.UVPair;
@@ -17,15 +18,20 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Builds geometry for a set of cells from each source block's own model. Every face quad of the source
  * is clipped to the cell's share of that face, with UVs interpolated, so a full set of pieces lines up
  * with the original texture. Faces between two filled cells are dropped.
+ * Blocks with a strip along the top of their sides (grass, mycelium) show that strip on a lower cell
+ * whose top is open, like a shrunk down block.
  */
 public final class MicroQuads {
     public static final int TINTS_PER_CELL = 4;
     private static final float EPS = 1.0E-4F;
+    private static final Map<BlockState, Boolean> topStrip = new ConcurrentHashMap<>();
 
     private MicroQuads() {}
 
@@ -37,7 +43,21 @@ public final class MicroQuads {
      * @param remapTint  give each cell its own tint index range so the block tint source can look up that cell's block
      * @param worldFaces put outer faces in their cull direction (block rendering) instead of all unculled (items)
      */
+    public static void clearCache() {
+        topStrip.clear();
+    }
+
+    /** Bit for an outer face of a cell that a neighbouring block hides. */
+    public static long hiddenBit(int cell, Direction d) {
+        return 1L << (d.ordinal() << 3 | cell);
+    }
+
     public static QuadCollection build(@Nullable BlockState[] cells, boolean remapTint, boolean worldFaces, Vector3fc offset) {
+        return build(cells, remapTint, worldFaces, offset, 0L);
+    }
+
+    /** @param hidden outer faces covered by neighbouring blocks, see {@link #hiddenBit} */
+    public static QuadCollection build(@Nullable BlockState[] cells, boolean remapTint, boolean worldFaces, Vector3fc offset, long hidden) {
         BlockStateModelSet set = models();
         QuadCollection.Builder out = new QuadCollection.Builder();
         List<BlockStateModelPart> parts = new ArrayList<>();
@@ -49,27 +69,55 @@ public final class MicroQuads {
             model.collectParts(RandomSource.create(42L), parts);
             for (BlockStateModelPart part : parts) {
                 for (Direction d : Direction.values()) {
-                    for (BakedQuad q : part.getQuads(d)) emit(out, cells, i, q, d, remapTint, worldFaces, offset);
+                    for (BakedQuad q : part.getQuads(d)) emit(out, cells, i, q, d, remapTint, worldFaces, offset, hidden);
                 }
-                for (BakedQuad q : part.getQuads(null)) emit(out, cells, i, q, q.direction(), remapTint, worldFaces, offset);
+                for (BakedQuad q : part.getQuads(null)) emit(out, cells, i, q, q.direction(), remapTint, worldFaces, offset, hidden);
             }
         }
         return out.build();
     }
 
     private static void emit(QuadCollection.Builder out, @Nullable BlockState[] cells, int cell, BakedQuad q, Direction d,
-                             boolean remapTint, boolean worldFaces, Vector3fc offset) {
+                             boolean remapTint, boolean worldFaces, Vector3fc offset, long hidden) {
         int n = Cells.neighbour(cell, d);
         BlockState self = cells[cell];
         if (n >= 0 && cells[n] != null && (cells[n].isSolidRender() || self.skipRendering(cells[n], d))) return;
-        BakedQuad clipped = clip(q, d, cell, remapTint ? cell : -1, offset);
+        if (n < 0 && (hidden & hiddenBit(cell, d)) != 0) return;
+        boolean lift = false;
+        if (d.getAxis() != Direction.Axis.Y && Cells.y(cell) == 0 && hasTopStrip(self)) {
+            lift = cells[Cells.neighbour(cell, Direction.UP)] != self;
+        }
+        BakedQuad clipped = clip(q, d, cell, remapTint ? cell : -1, offset, lift);
         if (clipped == null) return;
         // The block state only reports opaque cells as occluding, so see-through cells are never culled by neighbours
         if (worldFaces && n < 0 && self.isSolidRender()) out.addCulledFace(d, clipped);
         else out.addUnculledFace(clipped);
     }
 
-    private static @Nullable BakedQuad clip(BakedQuad q, Direction d, int cell, int tintCell, Vector3fc offset) {
+    private static boolean hasTopStrip(BlockState state) {
+        Boolean known = topStrip.get(state);
+        if (known != null) return known;
+        boolean strip = state.is(SmolBlocks.TOP_STRIP) || hasSideOverlay(state);
+        topStrip.put(state, strip);
+        return strip;
+    }
+
+    // A tinted layer drawn over an untinted side, the way grass blocks colour their side strip
+    private static boolean hasSideOverlay(BlockState state) {
+        List<BlockStateModelPart> parts = new ArrayList<>();
+        models().get(state).collectParts(RandomSource.create(42L), parts);
+        boolean tinted = false, plain = false;
+        for (BlockStateModelPart part : parts) {
+            for (BakedQuad q : part.getQuads(Direction.NORTH)) {
+                if (q.materialInfo().tintIndex() >= 0) tinted = true;
+                else plain = true;
+            }
+        }
+        return tinted && plain;
+    }
+
+    /** @param lift sample the upper half of the source face for a lower cell, so a top strip shows on it */
+    private static @Nullable BakedQuad clip(BakedQuad q, Direction d, int cell, int tintCell, Vector3fc offset, boolean lift) {
         int axis = d.getAxis().ordinal();
         int a = (axis + 1) % 3, b = (axis + 2) % 3;
         float plane = d.getAxisDirection() == Direction.AxisDirection.POSITIVE ? 1.0F : 0.0F;
@@ -96,6 +144,12 @@ public final class MicroQuads {
         float cellB0 = Math.max(minB, loB), cellB1 = Math.min(maxB, loB + 0.5F);
         if (cellA1 - cellA0 < EPS || cellB1 - cellB0 < EPS) return null;
         float facePlane = 0.5F * cellCoord(cell, axis) + (plane > 0 ? 0.5F : 0.0F);
+        float liftA = 0.0F, liftB = 0.0F;
+        if (lift) {
+            // Only whole-face quads can be shifted, partial ones keep their own position
+            if (a == 1 && minA < EPS && maxA > 1 - EPS) liftA = 0.5F;
+            if (b == 1 && minB < EPS && maxB > 1 - EPS) liftB = 0.5F;
+        }
 
         Vector3f[] pos = new Vector3f[4];
         long[] uv = new long[4];
@@ -103,7 +157,7 @@ public final class MicroQuads {
             Vector3fc p = q.position(v);
             float na = p.get(a) > (minA + maxA) / 2 ? cellA1 : cellA0;
             float nb = p.get(b) > (minB + maxB) / 2 ? cellB1 : cellB0;
-            float s = (na - minA) / (maxA - minA), t = (nb - minB) / (maxB - minB);
+            float s = (na + liftA - minA) / (maxA - minA), t = (nb + liftB - minB) / (maxB - minB);
             Vector3f np = new Vector3f();
             np.setComponent(axis, facePlane);
             np.setComponent(a, na);

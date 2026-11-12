@@ -8,6 +8,8 @@ displayName = "${name}"
 authors = "${author}"
 credits = ""
 description = '''${description}'''
+[[mixins]]
+config = "smolblocks.mixins.json"
 [[dependencies.${id}]]
 modId = "neoforge"
 type = "required"
