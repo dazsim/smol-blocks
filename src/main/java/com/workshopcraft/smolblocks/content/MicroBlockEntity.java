@@ -1,7 +1,6 @@
 package com.workshopcraft.smolblocks.content;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -9,20 +8,33 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jspecify.annotations.Nullable;
+//? if >=1.21.6 {
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import org.jspecify.annotations.Nullable;
-//? if neoforge {
+//?} else {
+/*import com.mojang.serialization.Codec;
+import net.minecraft.nbt.NbtOps;
+*///?}
+//? if >=1.21
+import net.minecraft.core.HolderLookup;
+//? if neoforge && >=26.1 {
 import net.neoforged.neoforge.model.data.ModelData;
 import net.neoforged.neoforge.model.data.ModelProperty;
-//?}
+//?} else if neoforge {
+/*import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.client.model.data.ModelProperty;
+*///?} else if forge {
+/*import net.minecraftforge.client.model.data.ModelData;
+import net.minecraftforge.client.model.data.ModelProperty;
+*///?}
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class MicroBlockEntity extends BlockEntity {
-    //? if neoforge
+    //? if neoforge || forge
     public static final ModelProperty<CellStates> CELLS = new ModelProperty<>();
 
     private final BlockState[] cells = new BlockState[8];
@@ -71,32 +83,83 @@ public class MicroBlockEntity extends BlockEntity {
         if (level != null) level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
     }
 
-    @Override
-    protected void saveAdditional(ValueOutput output) {
-        super.saveAdditional(output);
+    private List<BlockState> list() {
         List<BlockState> list = new ArrayList<>(8);
         for (BlockState s : cells) list.add(s == null ? Blocks.AIR.defaultBlockState() : s);
-        output.store("cells", BlockState.CODEC.listOf(), list);
+        return list;
     }
 
-    @Override
-    protected void loadAdditional(ValueInput input) {
-        super.loadAdditional(input);
+    private void read(List<BlockState> list) {
         Arrays.fill(cells, null);
         snapshot = null;
-        List<BlockState> list = input.read("cells", BlockState.CODEC.listOf()).orElse(List.of());
         for (int i = 0; i < Math.min(8, list.size()); i++) cells[i] = list.get(i).isAir() ? null : list.get(i);
         if (level != null && level.isClientSide()) {
-            //? if neoforge
+            //? if neoforge || forge
             requestModelDataUpdate();
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 0);
         }
     }
 
+    //? if >=1.21.6 {
+    @Override
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        output.store("cells", BlockState.CODEC.listOf(), list());
+    }
+
+    @Override
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        read(input.read("cells", BlockState.CODEC.listOf()).orElse(List.of()));
+    }
+    //?} else {
+    /*private static final Codec<List<BlockState>> LIST = BlockState.CODEC.listOf();
+
+    private void writeCells(CompoundTag tag) {
+        LIST.encodeStart(NbtOps.INSTANCE, list()).result().ifPresent(t -> tag.put("cells", t));
+    }
+
+    private void readCells(CompoundTag tag) {
+        read(tag.contains("cells") ? LIST.parse(NbtOps.INSTANCE, tag.get("cells")).result().orElse(List.of()) : List.of());
+    }
+    *///?}
+    //? if >=1.21 && <1.21.6 {
+    /*@Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        writeCells(tag);
+    }
+
+    @Override
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        readCells(tag);
+    }
+    *///?} else if <1.21 {
+    /*@Override
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
+        writeCells(tag);
+    }
+
+    @Override
+    public void load(CompoundTag tag) {
+        super.load(tag);
+        readCells(tag);
+    }
+    *///?}
+
+    //? if >=1.21 {
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         return saveCustomOnly(registries);
     }
+    //?} else {
+    /*@Override
+    public CompoundTag getUpdateTag() {
+        return saveWithoutMetadata();
+    }
+    *///?}
 
     @Override
     public @Nullable Packet<ClientGamePacketListener> getUpdatePacket() {
@@ -108,7 +171,17 @@ public class MicroBlockEntity extends BlockEntity {
     public ModelData getModelData() {
         return ModelData.of(CELLS, snapshot());
     }
-    //?}
+    //?} else if forge {
+    /*@Override
+    public ModelData getModelData() {
+        return ModelData.builder().with(CELLS, snapshot()).build();
+    }
+    *///?} else {
+    /*@Override
+    public Object getRenderData() {
+        return snapshot();
+    }
+    *///?}
 
     /** Immutable copy of the cells, used as the model cache key. */
     public static final class CellStates {
@@ -122,6 +195,12 @@ public class MicroBlockEntity extends BlockEntity {
 
         public @Nullable BlockState[] states() {
             return states;
+        }
+
+        public int mask() {
+            int m = 0;
+            for (int i = 0; i < 8; i++) if (states[i] != null) m |= 1 << i;
+            return m;
         }
 
         @Override

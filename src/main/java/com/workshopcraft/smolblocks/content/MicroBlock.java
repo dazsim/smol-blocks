@@ -1,11 +1,7 @@
 package com.workshopcraft.smolblocks.content;
 
-import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
@@ -33,7 +29,16 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
-//? if neoforge
+//? if >=1.21 && <26.3
+import com.mojang.serialization.MapCodec;
+//? if >=26.1 {
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.ScheduledTickAccess;
+//?} else {
+/*import net.minecraft.world.level.LevelAccessor;
+*///?}
+//? if neoforge || forge
 import net.minecraft.world.level.Explosion;
 
 import java.util.ArrayList;
@@ -48,6 +53,7 @@ import java.util.Map;
  * comes from the block entity.
  */
 public class MicroBlock extends Block implements EntityBlock, SimpleWaterloggedBlock {
+    //? if >=1.21 && <26.3
     public static final MapCodec<MicroBlock> CODEC = simpleCodec(MicroBlock::new);
     public static final IntegerProperty OPAQUE = IntegerProperty.create("opaque", 0, 255);
     public static final IntegerProperty LIGHT = IntegerProperty.create("light", 0, 15);
@@ -58,10 +64,12 @@ public class MicroBlock extends Block implements EntityBlock, SimpleWaterloggedB
         registerDefaultState(stateDefinition.any().setValue(OPAQUE, 0).setValue(LIGHT, 0).setValue(WATERLOGGED, false));
     }
 
+    //? if >=1.21 && <26.3 {
     @Override
     protected MapCodec<? extends Block> codec() {
         return CODEC;
     }
+    //?}
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
@@ -75,7 +83,7 @@ public class MicroBlock extends Block implements EntityBlock, SimpleWaterloggedB
             BlockState s = cells[i];
             if (s == null) continue;
             filled |= 1 << i;
-            if (s.isSolidRender()) opaque |= 1 << i;
+            if (Cuttable.solid(s)) opaque |= 1 << i;
             light = Math.max(light, s.getLightEmission());
         }
         return defaultBlockState().setValue(OPAQUE, opaque).setValue(LIGHT, light).setValue(WATERLOGGED, waterlogged && filled != 255);
@@ -91,51 +99,79 @@ public class MicroBlock extends Block implements EntityBlock, SimpleWaterloggedB
     }
 
     @Override
-    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         int m = mask(level, pos);
         return m == 0 ? Shapes.block() : Cells.shape(m);
     }
 
     @Override
-    protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+    public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return Cells.shape(mask(level, pos));
     }
 
+    //? if >=1.21.2 {
     @Override
-    protected VoxelShape getOcclusionShape(BlockState state) {
+    public VoxelShape getOcclusionShape(BlockState state) {
         return Cells.shape(state.getValue(OPAQUE));
     }
 
     @Override
-    protected boolean useShapeForLightOcclusion(BlockState state) {
+    public boolean propagatesSkylightDown(BlockState state) {
+        return state.getValue(OPAQUE) != 255 && !state.getValue(WATERLOGGED);
+    }
+    //?} else {
+    /*@Override
+    public VoxelShape getOcclusionShape(BlockState state, BlockGetter level, BlockPos pos) {
+        return Cells.shape(state.getValue(OPAQUE));
+    }
+
+    @Override
+    public boolean propagatesSkylightDown(BlockState state, BlockGetter level, BlockPos pos) {
+        return state.getValue(OPAQUE) != 255 && !state.getValue(WATERLOGGED);
+    }
+    *///?}
+
+    @Override
+    public boolean useShapeForLightOcclusion(BlockState state) {
         return true;
     }
 
     @Override
-    protected boolean propagatesSkylightDown(BlockState state) {
-        return state.getValue(OPAQUE) != 255 && !state.getValue(WATERLOGGED);
-    }
-
-    @Override
-    protected FluidState getFluidState(BlockState state) {
+    public FluidState getFluidState(BlockState state) {
         return state.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
     }
 
+    //? if >=1.21.2 {
     @Override
-    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos, Direction direction,
-                                     BlockPos neighbourPos, BlockState neighbourState, RandomSource random) {
+    public BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos, Direction direction,
+                                  BlockPos neighbourPos, BlockState neighbourState, RandomSource random) {
         if (state.getValue(WATERLOGGED)) ticks.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
         return super.updateShape(state, level, ticks, pos, direction, neighbourPos, neighbourState, random);
     }
+    //?} else {
+    /*@Override
+    public BlockState updateShape(BlockState state, Direction direction, BlockState neighbourState, LevelAccessor level, BlockPos pos, BlockPos neighbourPos) {
+        if (state.getValue(WATERLOGGED)) level.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
+        return super.updateShape(state, direction, neighbourState, level, pos, neighbourPos);
+    }
+    *///?}
 
     // Water flow between spaces uses the collision shape, so a face only holds water back when its 4 cells are filled
+    //? if >=1.21.2 {
     @Override
     public boolean canPlaceLiquid(@Nullable LivingEntity user, BlockGetter level, BlockPos pos, BlockState state, Fluid fluid) {
+    //?} else if >=1.21 {
+    /*@Override
+    public boolean canPlaceLiquid(@Nullable Player user, BlockGetter level, BlockPos pos, BlockState state, Fluid fluid) {
+    *///?} else {
+    /*@Override
+    public boolean canPlaceLiquid(BlockGetter level, BlockPos pos, BlockState state, Fluid fluid) {
+    *///?}
         return fluid == Fluids.WATER && mask(level, pos) != 255;
     }
 
     @Override
-    protected float getDestroyProgress(BlockState state, Player player, BlockGetter level, BlockPos pos) {
+    public float getDestroyProgress(BlockState state, Player player, BlockGetter level, BlockPos pos) {
         if (!(level.getBlockEntity(pos) instanceof MicroBlockEntity be)) return super.getDestroyProgress(state, player, level, pos);
         float slowest = Float.MAX_VALUE;
         for (int i = 0; i < 8; i++) {
@@ -146,13 +182,13 @@ public class MicroBlock extends Block implements EntityBlock, SimpleWaterloggedB
     }
 
     @Override
-    protected List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
+    public List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
         if (!(params.getOptionalParameter(LootContextParams.BLOCK_ENTITY) instanceof MicroBlockEntity be)) return List.of();
         Player player = params.getOptionalParameter(LootContextParams.THIS_ENTITY) instanceof Player p ? p : null;
         Map<BlockState, Boolean> drops = new HashMap<>();
         List<ItemStack> out = new ArrayList<>();
         for (ItemStack stack : drops(be)) {
-            BlockState source = stack.get(SmolContent.SOURCE);
+            BlockState source = PieceItem.source(stack);
             if (source == null) continue;
             if (drops.computeIfAbsent(source, s -> wouldDrop(s, player, params))) out.add(stack);
         }
@@ -202,26 +238,58 @@ public class MicroBlock extends Block implements EntityBlock, SimpleWaterloggedB
         return -1;
     }
 
-    @Override
-    protected ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
+    private static ItemStack firstPiece(BlockGetter level, BlockPos pos) {
         if (!(level.getBlockEntity(pos) instanceof MicroBlockEntity be) || firstCell(be) < 0) return ItemStack.EMPTY;
         return pieceAt(be, firstCell(be));
     }
 
-    //? if neoforge {
-    @Override
-    public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData, Player player) {
-        if (!(level.getBlockEntity(pos) instanceof MicroBlockEntity be)) return ItemStack.EMPTY;
-        HitResult hit = player.pick(player.blockInteractionRange(), 1.0F, false);
-        if (hit instanceof BlockHitResult bh && bh.getBlockPos().equals(pos)) {
-            Vec3 n = Vec3.atLowerCornerOf(bh.getDirection().getUnitVec3i());
-            Vec3 p = bh.getLocation().subtract(n.scale(0.001)).subtract(Vec3.atLowerCornerOf(pos));
+    /** The piece under a hit on this space, or the first piece when the hit misses every cell. */
+    private static ItemStack pieceHit(BlockGetter level, BlockPos pos, @Nullable HitResult hit) {
+        if (level.getBlockEntity(pos) instanceof MicroBlockEntity be && hit instanceof BlockHitResult bh && bh.getBlockPos().equals(pos)) {
+            Direction d = bh.getDirection();
+            Vec3 p = bh.getLocation().subtract(d.getStepX() * 0.001, d.getStepY() * 0.001, d.getStepZ() * 0.001)
+                    .subtract(pos.getX(), pos.getY(), pos.getZ());
             int cell = Cells.index(p.x >= 0.5 ? 1 : 0, p.y >= 0.5 ? 1 : 0, p.z >= 0.5 ? 1 : 0);
             if (be.cell(cell) != null) return pieceAt(be, cell);
         }
-        return getCloneItemStack(level, pos, state, includeData);
+        return firstPiece(level, pos);
     }
 
+    //? if >=1.21.4 {
+    @Override
+    public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
+        return firstPiece(level, pos);
+    }
+    //?} else if >=1.21 {
+    /*@Override
+    public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
+        return firstPiece(level, pos);
+    }
+    *///?} else {
+    /*@Override
+    public ItemStack getCloneItemStack(BlockGetter level, BlockPos pos, BlockState state) {
+        return firstPiece(level, pos);
+    }
+    *///?}
+
+    //? if neoforge && >=1.21.4 {
+    @Override
+    public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData, Player player) {
+        return pieceHit(level, pos, player.pick(player.blockInteractionRange(), 1.0F, false));
+    }
+    //?} else if neoforge {
+    /*@Override
+    public ItemStack getCloneItemStack(BlockState state, HitResult target, LevelReader level, BlockPos pos, Player player) {
+        return pieceHit(level, pos, target);
+    }
+    *///?} else if forge {
+    /*@Override
+    public ItemStack getCloneItemStack(BlockState state, HitResult target, BlockGetter level, BlockPos pos, Player player) {
+        return pieceHit(level, pos, target);
+    }
+    *///?}
+
+    //? if neoforge || forge {
     @Override
     public float getExplosionResistance(BlockState state, BlockGetter level, BlockPos pos, Explosion explosion) {
         if (!(level.getBlockEntity(pos) instanceof MicroBlockEntity be)) return super.getExplosionResistance(state, level, pos, explosion);

@@ -16,12 +16,19 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
+//? if <1.21 {
+/*import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
+*///?}
 
 public class PieceItem extends Item {
     public PieceItem(Properties properties) {
         super(properties);
     }
 
+    //? if >=1.21 {
     public static ItemStack create(BlockState source, Shape shape, int count) {
         ItemStack stack = new ItemStack(SmolContent.PIECE, count);
         stack.set(SmolContent.SOURCE, source);
@@ -29,10 +36,41 @@ public class PieceItem extends Item {
         return stack;
     }
 
+    public static @Nullable BlockState source(ItemStack stack) {
+        return stack.get(SmolContent.SOURCE);
+    }
+
+    public static @Nullable Shape shape(ItemStack stack) {
+        return stack.get(SmolContent.SHAPE);
+    }
+    //?} else {
+    /*private static final String SOURCE = "smolblocks:source", SHAPE = "smolblocks:shape";
+
+    public static ItemStack create(BlockState source, Shape shape, int count) {
+        ItemStack stack = new ItemStack(SmolContent.PIECE, count);
+        CompoundTag tag = stack.getOrCreateTag();
+        tag.put(SOURCE, NbtUtils.writeBlockState(source));
+        tag.putString(SHAPE, shape.getSerializedName());
+        return stack;
+    }
+
+    public static @Nullable BlockState source(ItemStack stack) {
+        CompoundTag tag = stack.getTag();
+        if (tag == null || !tag.contains(SOURCE)) return null;
+        BlockState state = NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), tag.getCompound(SOURCE));
+        return state.isAir() ? null : state;
+    }
+
+    public static @Nullable Shape shape(ItemStack stack) {
+        CompoundTag tag = stack.getTag();
+        return tag == null ? null : Shape.byName(tag.getString(SHAPE));
+    }
+    *///?}
+
     @Override
     public Component getName(ItemStack stack) {
-        BlockState source = stack.get(SmolContent.SOURCE);
-        Shape shape = stack.get(SmolContent.SHAPE);
+        BlockState source = source(stack);
+        Shape shape = shape(stack);
         if (source == null || shape == null) return super.getName(stack);
         return Component.translatable("item.smolblocks.piece." + shape.getSerializedName(), source.getBlock().getName());
     }
@@ -66,8 +104,8 @@ public class PieceItem extends Item {
     @Override
     public InteractionResult useOn(UseOnContext ctx) {
         ItemStack stack = ctx.getItemInHand();
-        BlockState source = stack.get(SmolContent.SOURCE);
-        Shape shape = stack.get(SmolContent.SHAPE);
+        BlockState source = source(stack);
+        Shape shape = shape(stack);
         if (source == null || shape == null) return InteractionResult.PASS;
         Level level = ctx.getLevel();
         Player player = ctx.getPlayer();
@@ -92,7 +130,7 @@ public class PieceItem extends Item {
         } else if (!here.canBeReplaced()) {
             return InteractionResult.FAIL;
         }
-        if (!level.isUnobstructed(null, Cells.shape(pl.mask()).move(pos))) return InteractionResult.FAIL;
+        if (!level.isUnobstructed(null, Cells.shape(pl.mask()).move(pos.getX(), pos.getY(), pos.getZ()))) return InteractionResult.FAIL;
         if (level.isClientSide()) return InteractionResult.SUCCESS;
 
         if (be == null) {
@@ -109,7 +147,11 @@ public class PieceItem extends Item {
         SoundType sound = source.getSoundType();
         level.playSound(null, pos, sound.getPlaceSound(), SoundSource.BLOCKS, (sound.getVolume() + 1.0F) / 2.0F, sound.getPitch() * 0.8F);
         level.gameEvent(GameEvent.BLOCK_PLACE, pos, GameEvent.Context.of(player, source));
+        //? if >=1.21 {
         stack.consume(1, player);
+        //?} else {
+        /*if (player == null || !player.getAbilities().instabuild) stack.shrink(1);
+        *///?}
         return InteractionResult.SUCCESS;
     }
 }

@@ -25,8 +25,12 @@ repositories {
 }
 
 sourceSets.main {
-    java.exclude("com/workshopcraft/smolblocks/fabric/**", "com/workshopcraft/smolblocks/forge/**")
+    java.exclude("com/workshopcraft/smolblocks/fabric/**", "com/workshopcraft/smolblocks/forge/**",
+        "com/workshopcraft/smolblocks/legacy/fabric/**", "com/workshopcraft/smolblocks/legacy/forge/**")
     if (jei == null) java.exclude("com/workshopcraft/smolblocks/neoforge/jei/**")
+    if (modern) java.exclude("com/workshopcraft/smolblocks/legacy/**")
+    else java.exclude("com/workshopcraft/smolblocks/client/**", "com/workshopcraft/smolblocks/neoforge/client/**")
+    if (!modern) resources.setSrcDirs(listOf(rootProject.file("src/legacy/1.21.1"), rootProject.file("src/main/resources")))
 }
 
 neoForge {
@@ -72,10 +76,15 @@ tasks {
             "minecraft" to sc.properties.get<String>("mod.mc_compat"),
             "neoforge" to if (modern) "[26.1.0.0-beta,)" else "[21.1,)",
             "java" to requiredJava.majorVersion,
+            "mixin_package" to if (modern) "client.mixin" else "legacy.client.mixin",
+            "mixin_class" to if (modern) "FluidRendererMixin" else "LiquidBlockRendererMixin",
+            "mixin_java" to "21",
+            "refmap" to "",
         )
         inputs.properties(props)
-        filesMatching(listOf("META-INF/neoforge.mods.toml", "pack.mcmeta")) { expand(props) }
+        filesMatching(listOf("META-INF/neoforge.mods.toml", "pack.mcmeta", "smolblocks.mixins.json")) { expand(props) }
         exclude("fabric.mod.json", "META-INF/mods.toml")
+        if (!modern) exclude("pack.mcmeta", "assets/smolblocks/items/**")
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
 

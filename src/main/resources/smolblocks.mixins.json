@@ -1,9 +1,10 @@
 {
   "required": true,
-  "package": "com.workshopcraft.smolblocks.neoforge.mixin",
-  "compatibilityLevel": "JAVA_21",
+  "minVersion": "0.8",
+  "package": "com.workshopcraft.smolblocks.${mixin_package}",
+  "compatibilityLevel": "JAVA_${mixin_java}",${refmap}
   "client": [
-    "FluidRendererMixin"
+    "${mixin_class}"
   ],
   "injectors": {
     "defaultRequire": 1

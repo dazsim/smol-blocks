@@ -11,6 +11,7 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 public class SmolBlocksNeoForge {
     public SmolBlocksNeoForge(IEventBus modBus) {
         modBus.addListener((RegisterEvent e) -> {
+            //? if >=1.21
             e.register(Registries.DATA_COMPONENT_TYPE, h -> SmolContent.registerComponents(h::register));
             e.register(Registries.BLOCK, h -> SmolContent.registerBlocks(h::register));
             e.register(Registries.ITEM, h -> SmolContent.registerItems(h::register));

@@ -15,8 +15,16 @@ public final class Cuttable {
         if (state.isAir() || state.getBlock() instanceof MicroBlock) return false;
         if (state.is(SmolBlocks.CUTTABLE)) return true;
         if (state.is(SmolBlocks.UNCUTTABLE) || state.hasBlockEntity()) return false;
-        return state.getRenderShape() == RenderShape.MODEL && state.isSolidRender()
+        return state.getRenderShape() == RenderShape.MODEL && solid(state)
                 && state.isCollisionShapeFullBlock(EmptyBlockGetter.INSTANCE, BlockPos.ZERO);
+    }
+
+    public static boolean solid(BlockState state) {
+        //? if >=1.21.2 {
+        return state.isSolidRender();
+        //?} else {
+        /*return state.isSolidRender(EmptyBlockGetter.INSTANCE, BlockPos.ZERO);
+        *///?}
     }
 
     public static BlockState sourceOf(ItemStack stack) {

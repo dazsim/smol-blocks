@@ -1,10 +1,9 @@
-package com.workshopcraft.smolblocks.neoforge;
+package com.workshopcraft.smolblocks.neoforge.client;
 
 import com.mojang.serialization.MapCodec;
+import com.workshopcraft.smolblocks.client.ClientCells;
 import com.workshopcraft.smolblocks.client.MicroPart;
 import com.workshopcraft.smolblocks.client.MicroQuads;
-import com.workshopcraft.smolblocks.content.Cells;
-import com.workshopcraft.smolblocks.content.MicroBlock;
 import com.workshopcraft.smolblocks.content.MicroBlockEntity;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
@@ -14,7 +13,6 @@ import net.minecraft.client.resources.model.ResolvableModel;
 import net.minecraft.client.resources.model.geometry.QuadCollection;
 import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -43,39 +41,11 @@ public class MicroBlockModel implements DynamicBlockStateModel {
     }
 
     private static MicroBlockEntity.@Nullable CellStates cells(BlockAndTintGetter level, BlockPos pos) {
-        MicroBlockEntity.CellStates cells = level.getModelData(pos).get(MicroBlockEntity.CELLS);
-        if (cells == null && level.getBlockEntity(pos) instanceof MicroBlockEntity be) cells = be.snapshot();
-        return cells;
+        return ClientCells.get(level, pos);
     }
 
-    /**
-     * Outer faces covered by the next space over: the touching cell of a neighbouring micro block, or a
-     * full block. Glass next to glass hides the shared face the way vanilla glass blocks do.
-     */
     private static long hidden(BlockAndTintGetter level, BlockPos pos, MicroBlockEntity.CellStates cells) {
-        long hidden = 0L;
-        BlockState[] own = cells.states();
-        BlockPos.MutableBlockPos at = new BlockPos.MutableBlockPos();
-        for (Direction d : Direction.values()) {
-            at.setWithOffset(pos, d);
-            BlockState next = level.getBlockState(at);
-            if (next.isAir()) continue;
-            BlockState[] other = null;
-            if (next.getBlock() instanceof MicroBlock) {
-                MicroBlockEntity.CellStates nc = cells(level, at);
-                if (nc == null) continue;
-                other = nc.states();
-            }
-            for (int i = 0; i < 8; i++) {
-                BlockState self = own[i];
-                if (self == null || Cells.neighbour(i, d) >= 0) continue;
-                BlockState touching = other == null ? next : other[i ^ 1 << d.getAxis().ordinal()];
-                if (touching != null && (touching.isSolidRender() || self.skipRendering(touching, d))) {
-                    hidden |= MicroQuads.hiddenBit(i, d);
-                }
-            }
-        }
-        return hidden;
+        return ClientCells.hidden(level, pos, cells);
     }
 
     private static MicroPart part(MicroBlockEntity.CellStates cells, long hidden) {

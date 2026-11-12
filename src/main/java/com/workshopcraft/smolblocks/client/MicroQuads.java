@@ -2,6 +2,7 @@ package com.workshopcraft.smolblocks.client;
 
 import com.workshopcraft.smolblocks.SmolBlocks;
 import com.workshopcraft.smolblocks.content.Cells;
+import com.workshopcraft.smolblocks.content.Cuttable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.builders.UVPair;
 import net.minecraft.client.renderer.block.BlockStateModelSet;
@@ -39,10 +40,6 @@ public final class MicroQuads {
         return Minecraft.getInstance().getModelManager().getBlockStateModelSet();
     }
 
-    /**
-     * @param remapTint  give each cell its own tint index range so the block tint source can look up that cell's block
-     * @param worldFaces put outer faces in their cull direction (block rendering) instead of all unculled (items)
-     */
     public static void clearCache() {
         topStrip.clear();
     }
@@ -56,7 +53,11 @@ public final class MicroQuads {
         return build(cells, remapTint, worldFaces, offset, 0L);
     }
 
-    /** @param hidden outer faces covered by neighbouring blocks, see {@link #hiddenBit} */
+    /**
+     * @param remapTint  give each cell its own tint index range so the block tint source can look up that cell's block
+     * @param worldFaces put outer faces in their cull direction (block rendering) instead of all unculled (items)
+     * @param hidden     outer faces covered by neighbouring blocks, see {@link #hiddenBit}
+     */
     public static QuadCollection build(@Nullable BlockState[] cells, boolean remapTint, boolean worldFaces, Vector3fc offset, long hidden) {
         BlockStateModelSet set = models();
         QuadCollection.Builder out = new QuadCollection.Builder();
@@ -81,7 +82,7 @@ public final class MicroQuads {
                              boolean remapTint, boolean worldFaces, Vector3fc offset, long hidden) {
         int n = Cells.neighbour(cell, d);
         BlockState self = cells[cell];
-        if (n >= 0 && cells[n] != null && (cells[n].isSolidRender() || self.skipRendering(cells[n], d))) return;
+        if (n >= 0 && cells[n] != null && (Cuttable.solid(cells[n]) || self.skipRendering(cells[n], d))) return;
         if (n < 0 && (hidden & hiddenBit(cell, d)) != 0) return;
         boolean lift = false;
         if (d.getAxis() != Direction.Axis.Y && Cells.y(cell) == 0 && hasTopStrip(self)) {
@@ -90,7 +91,7 @@ public final class MicroQuads {
         BakedQuad clipped = clip(q, d, cell, remapTint ? cell : -1, offset, lift);
         if (clipped == null) return;
         // The block state only reports opaque cells as occluding, so see-through cells are never culled by neighbours
-        if (worldFaces && n < 0 && self.isSolidRender()) out.addCulledFace(d, clipped);
+        if (worldFaces && n < 0 && Cuttable.solid(self)) out.addCulledFace(d, clipped);
         else out.addUnculledFace(clipped);
     }
 
@@ -166,19 +167,25 @@ public final class MicroQuads {
             uv[v] = lerpUV(q, corner, s, t);
         }
         BakedQuad.MaterialInfo info = q.materialInfo();
-        if (tintCell >= 0 && info.tintIndex() >= 0 && info.tintIndex() < TINTS_PER_CELL) {
-            //? if neoforge {
-            info = new BakedQuad.MaterialInfo(info.sprite(), info.layer(), info.itemRenderType(),
-                    tintCell * TINTS_PER_CELL + info.tintIndex(), info.shade(), info.lightEmission(), info.ambientOcclusion());
-            //?} else {
-            /*info = new BakedQuad.MaterialInfo(info.sprite(), info.layer(), info.itemRenderType(),
-                    tintCell * TINTS_PER_CELL + info.tintIndex(), info.shade(), info.lightEmission());
-            *///?}
-        }
+        if (tintCell >= 0 && info.tintIndex() >= 0 && info.tintIndex() < TINTS_PER_CELL) info = retint(info, tintCell * TINTS_PER_CELL + info.tintIndex());
         //? if neoforge {
         return new BakedQuad(pos[0], pos[1], pos[2], pos[3], uv[0], uv[1], uv[2], uv[3], q.direction(), info, q.bakedNormals(), q.bakedColors());
         //?} else {
         /*return new BakedQuad(pos[0], pos[1], pos[2], pos[3], uv[0], uv[1], uv[2], uv[3], q.direction(), info);
+        *///?}
+    }
+
+    private static BakedQuad.MaterialInfo retint(BakedQuad.MaterialInfo i, int tint) {
+        //? if >=26.3 && neoforge {
+        /*return new BakedQuad.MaterialInfo(i.sprite(), i.layer(), i.itemRenderType(), i.itemGlintRenderType(), i.itemGlintSpecialRenderType(),
+                tint, i.shadeDirectionOverride(), i.lightEmission(), i.ambientOcclusion());
+        *///?} else if >=26.3 {
+        /*return new BakedQuad.MaterialInfo(i.sprite(), i.layer(), i.itemRenderType(), i.itemGlintRenderType(), i.itemGlintSpecialRenderType(),
+                tint, i.shadeDirectionOverride(), i.lightEmission());
+        *///?} else if neoforge {
+        return new BakedQuad.MaterialInfo(i.sprite(), i.layer(), i.itemRenderType(), tint, i.shade(), i.lightEmission(), i.ambientOcclusion());
+        //?} else {
+        /*return new BakedQuad.MaterialInfo(i.sprite(), i.layer(), i.itemRenderType(), tint, i.shade(), i.lightEmission());
         *///?}
     }
 

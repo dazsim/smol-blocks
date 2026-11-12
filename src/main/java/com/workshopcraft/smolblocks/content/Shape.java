@@ -1,10 +1,13 @@
 package com.workshopcraft.smolblocks.content;
 
 import com.mojang.serialization.Codec;
+import net.minecraft.util.StringRepresentable;
+import org.jspecify.annotations.Nullable;
+//? if >=1.21 {
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.util.StringRepresentable;
+//?}
 
 /**
  * Piece shapes in a canonical frame. Spans say which axes the piece fills completely;
@@ -18,6 +21,7 @@ public enum Shape implements StringRepresentable {
     EIGHTH("eighth", 1, false, false, false);
 
     public static final Codec<Shape> CODEC = StringRepresentable.fromEnum(Shape::values);
+    //? if >=1.21
     public static final StreamCodec<ByteBuf, Shape> STREAM_CODEC = ByteBufCodecs.idMapper(i -> values()[i], Shape::ordinal);
 
     private final String name;
@@ -30,6 +34,11 @@ public enum Shape implements StringRepresentable {
         this.spanX = spanX;
         this.spanY = spanY;
         this.spanZ = spanZ;
+    }
+
+    public static @Nullable Shape byName(String name) {
+        for (Shape s : values()) if (s.name.equals(name)) return s;
+        return null;
     }
 
     @Override

@@ -2,9 +2,8 @@ package com.workshopcraft.smolblocks.client;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import com.workshopcraft.smolblocks.content.Cells;
 import com.workshopcraft.smolblocks.content.Shape;
-import com.workshopcraft.smolblocks.content.SmolContent;
+import com.workshopcraft.smolblocks.content.PieceItem;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.block.BlockTintSource;
@@ -19,6 +18,8 @@ import net.minecraft.client.resources.model.ResolvableModel;
 import net.minecraft.client.resources.model.ResolvedModel;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.client.resources.model.geometry.QuadCollection;
+//? if >=26.3
+/*import net.minecraft.client.resources.model.geometry.ItemQuads;*/
 import net.minecraft.client.resources.model.sprite.TextureSlots;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.ItemOwner;
@@ -39,7 +40,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class PieceItemModel implements ItemModel {
     private record Key(BlockState state, Shape shape) {}
 
-    private record Built(List<BakedQuad> quads, Vector3fc[] extents, int maxTint) {}
+    /** @param split the quads sorted by item render layer, on versions that keep them that way */
+    private record Built(List<BakedQuad> quads, Vector3fc[] extents, int maxTint, @Nullable Object split) {}
 
     private final ModelRenderProperties properties;
     private final Matrix4fc transformation;
@@ -59,14 +61,19 @@ public class PieceItemModel implements ItemModel {
         QuadCollection quads = MicroQuads.build(cells, false, false, offset);
         int maxTint = -1;
         for (BakedQuad q : quads.getAll()) maxTint = Math.max(maxTint, q.materialInfo().tintIndex());
-        return new Built(quads.getAll(), CuboidItemModelWrapper.computeExtents(quads.getAll()), maxTint);
+        //? if >=26.3 {
+        /*Object split = ItemQuads.split(quads.getAll());
+        *///?} else {
+        Object split = null;
+        //?}
+        return new Built(quads.getAll(), CuboidItemModelWrapper.computeExtents(quads.getAll()), maxTint, split);
     }
 
     @Override
     public void update(ItemStackRenderState output, ItemStack item, ItemModelResolver resolver, ItemDisplayContext displayContext,
                        @Nullable ClientLevel level, @Nullable ItemOwner owner, int seed) {
-        BlockState state = item.get(SmolContent.SOURCE);
-        Shape shape = item.get(SmolContent.SHAPE);
+        BlockState state = PieceItem.source(item);
+        Shape shape = PieceItem.shape(item);
         if (state == null || shape == null) return;
         Key key = new Key(state, shape);
         Built built = cache.computeIfAbsent(key, PieceItemModel::build);
@@ -84,7 +91,11 @@ public class PieceItemModel implements ItemModel {
                 tints.add(source == null ? -1 : source.color(state));
             }
         }
+        //? if >=26.3 {
+        /*layer.setQuads((ItemQuads) built.split());
+        *///?} else {
         layer.prepareQuadList().addAll(built.quads());
+        //?}
     }
 
     public record Unbaked(Identifier base) implements ItemModel.Unbaked {

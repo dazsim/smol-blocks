@@ -31,8 +31,14 @@ loom {
     providers.gradleProperty("quickPlay").orNull?.let { host -> runs.named("client") { programArgs("--quickPlayMultiplayer", host, "--username", "Dev") } }
 }
 
+val legacyDir = if (sc.current.parsed < "1.21") "1.20.1" else "1.21.1"
+
 sourceSets.main {
-    java.exclude("com/workshopcraft/smolblocks/neoforge/**", "com/workshopcraft/smolblocks/forge/**")
+    java.exclude("com/workshopcraft/smolblocks/neoforge/**", "com/workshopcraft/smolblocks/forge/**",
+        "com/workshopcraft/smolblocks/legacy/neoforge/**", "com/workshopcraft/smolblocks/legacy/forge/**")
+    if (modern) java.exclude("com/workshopcraft/smolblocks/legacy/**")
+    else java.exclude("com/workshopcraft/smolblocks/client/**", "com/workshopcraft/smolblocks/fabric/client/**")
+    if (!modern) resources.setSrcDirs(listOf(rootProject.file("src/legacy/$legacyDir"), rootProject.file("src/main/resources")))
 }
 
 java {
@@ -53,10 +59,17 @@ tasks {
             "minecraft" to sc.properties.get<String>("mod.mc_compat"),
             "loader" to Regex("\\d+\\.\\d+\\.\\d+").find(sc.properties.get<String>("deps.fabric_loader"))!!.value,
             "java" to requiredJava.majorVersion,
+            "client_entry" to if (modern) "com.workshopcraft.smolblocks.fabric.client.SmolBlocksFabricClient" else "com.workshopcraft.smolblocks.legacy.fabric.LegacyFabricClient",
+            "mixin_package" to if (modern) "client.mixin" else "legacy.client.mixin",
+            "mixin_class" to if (modern) "FluidRendererMixin" else "LiquidBlockRendererMixin",
+            "mixin_java" to if (requiredJava == JavaVersion.VERSION_17) "17" else "21",
+            "refmap" to "",
         )
         inputs.properties(props)
-        filesMatching("fabric.mod.json") { expand(props) }
-        exclude("META-INF/neoforge.mods.toml", "META-INF/mods.toml", "smolblocks.mixins.json")
+        filesMatching(listOf("fabric.mod.json", "smolblocks.mixins.json")) { expand(props) }
+        exclude("META-INF/neoforge.mods.toml", "META-INF/mods.toml")
+        if (!modern) exclude("pack.mcmeta", "assets/smolblocks/items/**")
+        if (sc.current.parsed < "1.21") exclude("data/smolblocks/recipe/**", "data/smolblocks/tags/block/**")
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
 

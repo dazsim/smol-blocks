@@ -1,4 +1,4 @@
-package com.workshopcraft.smolblocks.neoforge;
+package com.workshopcraft.smolblocks.client;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.workshopcraft.smolblocks.content.Cells;
@@ -150,6 +150,13 @@ public final class WaterTrim implements FluidRenderer.Output {
         public VertexConsumer setUv2(int u, int v) {
             return out.setUv2(u, v);
         }
+
+        //? if >=26.3 {
+        /*@Override
+        public VertexConsumer setUv3(float u, float v) {
+            return out.setUv3(u, v);
+        }
+        *///?}
 
         @Override
         public VertexConsumer setNormal(float x, float y, float z) {

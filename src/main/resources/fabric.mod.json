@@ -12,8 +12,14 @@
     "entrypoints": {
         "main": [
             "com.workshopcraft.smolblocks.fabric.SmolBlocksFabric"
+        ],
+        "client": [
+            "${client_entry}"
         ]
     },
+    "mixins": [
+        "smolblocks.mixins.json"
+    ],
     "depends": {
         "fabricloader": ">=${loader}",
         "fabric-api": "*",
