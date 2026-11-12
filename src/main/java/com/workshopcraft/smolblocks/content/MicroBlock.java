@@ -27,6 +27,7 @@ import org.jspecify.annotations.Nullable;
 import net.minecraft.world.level.Explosion;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -118,15 +119,23 @@ public class MicroBlock extends Block implements EntityBlock {
     protected List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
         if (!(params.getOptionalParameter(LootContextParams.BLOCK_ENTITY) instanceof MicroBlockEntity be)) return List.of();
         Player player = params.getOptionalParameter(LootContextParams.THIS_ENTITY) instanceof Player p ? p : null;
-        Float radius = params.getOptionalParameter(LootContextParams.EXPLOSION_RADIUS);
+        Map<BlockState, Boolean> drops = new HashMap<>();
         List<ItemStack> out = new ArrayList<>();
         for (ItemStack stack : drops(be)) {
             BlockState source = stack.get(SmolContent.SOURCE);
-            if (player != null && source != null && !player.hasCorrectToolForDrops(source)) continue;
-            if (radius != null && radius > 1.0F && params.getLevel().getRandom().nextFloat() > 1.0F / radius) continue;
-            out.add(stack);
+            if (source == null) continue;
+            if (drops.computeIfAbsent(source, s -> wouldDrop(s, player, params))) out.add(stack);
         }
         return out;
+    }
+
+    /**
+     * Pieces drop when the source block would drop anything if broken the same way, so the right tool,
+     * Silk Touch and explosion survival all follow the source block's own rules and loot table.
+     */
+    private static boolean wouldDrop(BlockState source, @Nullable Player player, LootParams.Builder params) {
+        if (player != null && !player.hasCorrectToolForDrops(source)) return false;
+        return !source.getDrops(params).isEmpty();
     }
 
     public static List<ItemStack> drops(MicroBlockEntity be) {
