@@ -15,8 +15,18 @@ val requiredJava = when {
     else -> JavaVersion.VERSION_21
 }
 
+val jei = findProperty("deps.jei") as String?
+
+repositories {
+    exclusiveContent {
+        forRepository { maven("https://maven.blamejared.com") { name = "BlameJared" } }
+        filter { includeGroup("mezz.jei") }
+    }
+}
+
 sourceSets.main {
     java.exclude("com/workshopcraft/smolblocks/fabric/**", "com/workshopcraft/smolblocks/forge/**")
+    if (jei == null) java.exclude("com/workshopcraft/smolblocks/neoforge/jei/**")
 }
 
 neoForge {
@@ -41,6 +51,7 @@ neoForge {
 
 dependencies {
     compileOnly("org.jspecify:jspecify:1.0.0")
+    if (jei != null) compileOnly("mezz.jei:jei-${sc.current.version}-neoforge-api:$jei")
 }
 
 java {

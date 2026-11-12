@@ -8,5 +8,6 @@
   "item.smolblocks.piece.quarter": "%s Quarter",
   "item.smolblocks.piece.vertical_quarter": "%s Vertical Quarter",
   "item.smolblocks.piece.eighth": "%s Eighth",
-  "block.smolblocks.micro": "Smol Block"
+  "block.smolblocks.micro": "Smol Block",
+  "jei.smolblocks.saw": "Put a saw and a block or piece in a crafting grid to cut it in two. A saw above or below cuts it flat, a saw beside or diagonal cuts it upright. Hard blocks such as obsidian need the diamond saw."
 }
