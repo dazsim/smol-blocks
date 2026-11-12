@@ -1,0 +1,12 @@
+{
+  "itemGroup.smolblocks": "Smol Blocks",
+  "item.smolblocks.iron_saw": "Iron Saw",
+  "item.smolblocks.diamond_saw": "Diamond Saw",
+  "item.smolblocks.piece": "Smol Piece",
+  "item.smolblocks.piece.slab": "%s Slab",
+  "item.smolblocks.piece.vertical_slab": "%s Vertical Slab",
+  "item.smolblocks.piece.quarter": "%s Quarter",
+  "item.smolblocks.piece.vertical_quarter": "%s Vertical Quarter",
+  "item.smolblocks.piece.eighth": "%s Eighth",
+  "block.smolblocks.micro": "Smol Block"
+}

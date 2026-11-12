@@ -1,0 +1,30 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:crafting_table",
+    "minecraft:cartography_table",
+    "minecraft:fletching_table",
+    "minecraft:smithing_table",
+    "minecraft:note_block",
+    "minecraft:redstone_lamp",
+    "minecraft:redstone_block",
+    "minecraft:observer",
+    "minecraft:piston",
+    "minecraft:sticky_piston",
+    "minecraft:tnt",
+    "minecraft:target",
+    "minecraft:respawn_anchor",
+    "minecraft:lodestone",
+    "minecraft:budding_amethyst",
+    "minecraft:magma_block",
+    "minecraft:bedrock",
+    "minecraft:reinforced_deepslate",
+    "minecraft:infested_stone",
+    "minecraft:infested_cobblestone",
+    "minecraft:infested_stone_bricks",
+    "minecraft:infested_mossy_stone_bricks",
+    "minecraft:infested_cracked_stone_bricks",
+    "minecraft:infested_chiseled_stone_bricks",
+    "minecraft:infested_deepslate"
+  ]
+}
