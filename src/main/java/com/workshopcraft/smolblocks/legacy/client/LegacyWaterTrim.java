@@ -11,7 +11,7 @@ import net.minecraft.core.BlockPos;
 public final class LegacyWaterTrim implements VertexConsumer {
     private static final float EPS = 1.0E-3F;
     private final VertexConsumer out;
-    private final int mask;
+    private final int mask, opaque;
     private final float baseX, baseY, baseZ;
     private final float[][] pos = new float[4][3];
     private final float[] u = new float[4], v = new float[4];
@@ -21,9 +21,10 @@ public final class LegacyWaterTrim implements VertexConsumer {
     private int cr = 255, cg = 255, cb = 255, ca = 255, lu, lv;
     private int count;
 
-    public LegacyWaterTrim(VertexConsumer out, int mask, BlockPos at) {
+    public LegacyWaterTrim(VertexConsumer out, int mask, int opaque, BlockPos at) {
         this.out = out;
         this.mask = mask;
+        this.opaque = opaque;
         this.baseX = at.getX() & 15;
         this.baseY = at.getY() & 15;
         this.baseZ = at.getZ() & 15;
@@ -48,6 +49,7 @@ public final class LegacyWaterTrim implements VertexConsumer {
     }
 
     private void quad() {
+        int axis = planeAxis();
         float[] s = splits(pos[0], pos[3], pos[1], pos[2]);
         float[] t = splits(pos[0], pos[1], pos[3], pos[2]);
         for (int i = 0; i + 1 < s.length; i++) {
@@ -55,13 +57,37 @@ public final class LegacyWaterTrim implements VertexConsumer {
                 float s0 = s[i], s1 = s[i + 1], t0 = t[j], t1 = t[j + 1];
                 float[] c = lerp((s0 + s1) / 2, (t0 + t1) / 2);
                 int cell = Cells.index(c[0] - baseX >= 0.5F ? 1 : 0, c[1] - baseY >= 0.5F ? 1 : 0, c[2] - baseZ >= 0.5F ? 1 : 0);
-                if ((mask & 1 << cell) != 0) continue;
-                emit(s0, t0);
-                emit(s1, t0);
-                emit(s1, t1);
-                emit(s0, t1);
+                float shift = 0.0F;
+                if ((mask & 1 << cell) != 0) {
+                    // A face on the outside of a see-through filled cell moves in to the water cell behind it
+                    if ((opaque & 1 << cell) != 0 || (mask & 1 << (cell ^ 1 << axis)) != 0) continue;
+                    float rel = c[axis] - (axis == 0 ? baseX : axis == 1 ? baseY : baseZ);
+                    shift = rel < 0.5F ? 0.5F : axis == 1 ? 0.499F - rel : -0.5F;
+                }
+                emit(s0, t0, axis, shift);
+                emit(s1, t0, axis, shift);
+                emit(s1, t1, axis, shift);
+                emit(s0, t1, axis, shift);
             }
         }
+    }
+
+    /** Axis the quad faces along: the one its corners spread least on, so sloped water tops count as up. */
+    private int planeAxis() {
+        int axis = 1;
+        float best = Float.MAX_VALUE;
+        for (int k = 0; k < 3; k++) {
+            float lo = Float.MAX_VALUE, hi = -Float.MAX_VALUE;
+            for (float[] p : pos) {
+                lo = Math.min(lo, p[k]);
+                hi = Math.max(hi, p[k]);
+            }
+            if (hi - lo < best) {
+                best = hi - lo;
+                axis = k;
+            }
+        }
+        return axis;
     }
 
     /** Parameter values where the quad crosses a cell boundary, from the midpoint of edge a0-a1 to that of b0-b1. */
@@ -101,8 +127,9 @@ public final class LegacyWaterTrim implements VertexConsumer {
         return near + (far - near) * t;
     }
 
-    private void emit(float s, float t) {
+    private void emit(float s, float t, int axis, float shift) {
         float[] p = lerp(s, t);
+        p[axis] += shift;
         // Colour and light are uniform enough across a water quad to take them from the nearest corner
         int k = s < 0.5F ? (t < 0.5F ? 0 : 3) : (t < 0.5F ? 1 : 2);
         //? if >=1.21 {

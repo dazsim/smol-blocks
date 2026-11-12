@@ -85,5 +85,6 @@ On 26.1.2 NeoForge with JEI installed, example cuts show up under crafting and t
 - Spaces with pieces cannot be pushed by pistons.
 - Moving a world with pieces to a different Minecraft version is not supported.
 - Fabric on 1.20.1 and 1.21.1 renders through the Fabric renderer API. With Sodium, install Indium as well.
+- Water does not draw against see-through pieces in a neighbouring space that holds water too; build tank walls so the glass and the water share a space, or put plain water next to them.
 - Shader packs and connected texture mods are untested.
 - No EMI or REI support.

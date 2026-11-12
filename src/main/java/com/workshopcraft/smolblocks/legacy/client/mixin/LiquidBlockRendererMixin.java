@@ -1,6 +1,7 @@
 package com.workshopcraft.smolblocks.legacy.client.mixin;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.workshopcraft.smolblocks.content.Cuttable;
 import com.workshopcraft.smolblocks.content.MicroBlock;
 import com.workshopcraft.smolblocks.content.MicroBlockEntity;
 import com.workshopcraft.smolblocks.legacy.client.LegacyCells;
@@ -22,8 +23,10 @@ abstract class LiquidBlockRendererMixin {
         if (consumer instanceof LegacyWaterTrim || !(state.getBlock() instanceof MicroBlock)) return;
         MicroBlockEntity.CellStates cells = LegacyCells.get(level, pos);
         int mask = cells == null ? 0 : cells.mask();
+        int opaque = 0;
+        if (cells != null) for (int i = 0; i < 8; i++) if (cells.states()[i] != null && Cuttable.solid(cells.states()[i])) opaque |= 1 << i;
         if (mask == 0) return;
-        ((LiquidBlockRenderer) (Object) this).tesselate(level, pos, new LegacyWaterTrim(consumer, mask, pos), state, fluid);
+        ((LiquidBlockRenderer) (Object) this).tesselate(level, pos, new LegacyWaterTrim(consumer, mask, opaque, pos), state, fluid);
         ci.cancel();
     }
 }
