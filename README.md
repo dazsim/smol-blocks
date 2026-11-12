@@ -89,6 +89,7 @@ On 26.1.2 NeoForge with JEI installed, example cuts show up under crafting, and 
 
 - Only the outer faces of a source block's model are used, so blocks with raised or inset detail look flat when cut.
 - Blocks with random texture variants use the same variant in every cell.
+- Pieces copy a block's look, light and drops, but not its particles or other effects, such as a steam vent's steam.
 - Spaces with pieces cannot be pushed by pistons.
 - Moving a world with pieces to a different Minecraft version is not supported.
 - Fabric on 1.20.1 and 1.21.1 renders through the Fabric renderer API. With Sodium, install Indium as well.
