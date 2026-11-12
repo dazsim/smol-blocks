@@ -34,7 +34,7 @@ loom {
 val legacyDir = if (sc.current.parsed < "1.21") "1.20.1" else "1.21.1"
 
 sourceSets.main {
-    java.exclude("com/workshopcraft/smolblocks/neoforge/**", "com/workshopcraft/smolblocks/forge/**",
+    java.exclude("com/workshopcraft/smolblocks/neoforge/**", "com/workshopcraft/smolblocks/forge/**", "com/workshopcraft/smolblocks/legacy/forgelike/**",
         "com/workshopcraft/smolblocks/legacy/neoforge/**", "com/workshopcraft/smolblocks/legacy/forge/**")
     if (modern) java.exclude("com/workshopcraft/smolblocks/legacy/**")
     else java.exclude("com/workshopcraft/smolblocks/client/**", "com/workshopcraft/smolblocks/fabric/client/**")
@@ -68,7 +68,7 @@ tasks {
         inputs.properties(props)
         filesMatching(listOf("fabric.mod.json", "smolblocks.mixins.json")) { expand(props) }
         exclude("META-INF/neoforge.mods.toml", "META-INF/mods.toml")
-        if (!modern) exclude("pack.mcmeta", "assets/smolblocks/items/**")
+        if (!modern) exclude("assets/smolblocks/items/**")
         if (sc.current.parsed < "1.21") exclude("data/smolblocks/recipe/**", "data/smolblocks/tags/block/**")
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }

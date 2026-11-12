@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": ["|II"],
+  "key": { "|": { "item": "minecraft:stick" }, "I": { "item": "minecraft:iron_ingot" } },
+  "result": { "item": "smolblocks:iron_saw", "count": 1 }
+}

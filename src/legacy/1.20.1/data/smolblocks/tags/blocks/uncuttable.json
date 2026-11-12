@@ -1,0 +1,81 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:crafting_table",
+    "minecraft:cartography_table",
+    "minecraft:fletching_table",
+    "minecraft:smithing_table",
+    "minecraft:note_block",
+    "minecraft:redstone_lamp",
+    "minecraft:redstone_block",
+    "minecraft:observer",
+    "minecraft:piston",
+    "minecraft:sticky_piston",
+    "minecraft:tnt",
+    "minecraft:target",
+    "minecraft:respawn_anchor",
+    "minecraft:lodestone",
+    "minecraft:budding_amethyst",
+    "minecraft:magma_block",
+    "minecraft:bedrock",
+    "minecraft:reinforced_deepslate",
+    "minecraft:infested_stone",
+    "minecraft:infested_cobblestone",
+    "minecraft:infested_stone_bricks",
+    "minecraft:infested_mossy_stone_bricks",
+    "minecraft:infested_cracked_stone_bricks",
+    "minecraft:infested_chiseled_stone_bricks",
+    "minecraft:infested_deepslate",
+    "minecraft:redstone_ore",
+    "minecraft:deepslate_redstone_ore",
+    "minecraft:frosted_ice",
+    {
+      "id": "minecraft:copper_bulb",
+      "required": false
+    },
+    {
+      "id": "minecraft:waxed_copper_bulb",
+      "required": false
+    },
+    {
+      "id": "minecraft:exposed_copper_bulb",
+      "required": false
+    },
+    {
+      "id": "minecraft:waxed_exposed_copper_bulb",
+      "required": false
+    },
+    {
+      "id": "minecraft:weathered_copper_bulb",
+      "required": false
+    },
+    {
+      "id": "minecraft:waxed_weathered_copper_bulb",
+      "required": false
+    },
+    {
+      "id": "minecraft:oxidized_copper_bulb",
+      "required": false
+    },
+    {
+      "id": "minecraft:waxed_oxidized_copper_bulb",
+      "required": false
+    },
+    "minecraft:white_concrete_powder",
+    "minecraft:orange_concrete_powder",
+    "minecraft:magenta_concrete_powder",
+    "minecraft:light_blue_concrete_powder",
+    "minecraft:yellow_concrete_powder",
+    "minecraft:lime_concrete_powder",
+    "minecraft:pink_concrete_powder",
+    "minecraft:gray_concrete_powder",
+    "minecraft:light_gray_concrete_powder",
+    "minecraft:cyan_concrete_powder",
+    "minecraft:purple_concrete_powder",
+    "minecraft:blue_concrete_powder",
+    "minecraft:brown_concrete_powder",
+    "minecraft:green_concrete_powder",
+    "minecraft:red_concrete_powder",
+    "minecraft:black_concrete_powder"
+  ]
+}
