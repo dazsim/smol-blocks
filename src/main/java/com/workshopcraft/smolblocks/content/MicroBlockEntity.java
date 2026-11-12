@@ -26,6 +26,7 @@ public class MicroBlockEntity extends BlockEntity {
     public static final ModelProperty<CellStates> CELLS = new ModelProperty<>();
 
     private final BlockState[] cells = new BlockState[8];
+    private @Nullable CellStates snapshot;
 
     public MicroBlockEntity(BlockPos pos, BlockState state) {
         super(SmolContent.MICRO_ENTITY, pos, state);
@@ -42,11 +43,17 @@ public class MicroBlockEntity extends BlockEntity {
     }
 
     public CellStates snapshot() {
-        return new CellStates(cells.clone());
+        CellStates s = snapshot;
+        if (s == null) snapshot = s = new CellStates(cells.clone());
+        return s;
     }
 
     public void fill(int mask, BlockState source) {
         for (int i = 0; i < 8; i++) if ((mask & 1 << i) != 0) cells[i] = source;
+        if (level != null && !level.isClientSide() && getBlockState().getBlock() instanceof MicroBlock block) {
+            BlockState state = block.stateFor(cells);
+            if (state != getBlockState()) level.setBlock(worldPosition, state, 3);
+        }
         changed();
     }
 
@@ -57,6 +64,7 @@ public class MicroBlockEntity extends BlockEntity {
     }
 
     private void changed() {
+        snapshot = null;
         setChanged();
         if (level != null) level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
     }
@@ -73,12 +81,13 @@ public class MicroBlockEntity extends BlockEntity {
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         Arrays.fill(cells, null);
+        snapshot = null;
         List<BlockState> list = input.read("cells", BlockState.CODEC.listOf()).orElse(List.of());
         for (int i = 0; i < Math.min(8, list.size()); i++) cells[i] = list.get(i).isAir() ? null : list.get(i);
         if (level != null && level.isClientSide()) {
             //? if neoforge
             requestModelDataUpdate();
-            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 8);
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 0);
         }
     }
 
@@ -99,15 +108,28 @@ public class MicroBlockEntity extends BlockEntity {
     }
     //?}
 
-    public record CellStates(BlockState[] states) {
+    /** Immutable copy of the cells, used as the model cache key. */
+    public static final class CellStates {
+        private final @Nullable BlockState[] states;
+        private final int hash;
+
+        public CellStates(@Nullable BlockState[] states) {
+            this.states = states;
+            this.hash = Arrays.hashCode(states);
+        }
+
+        public @Nullable BlockState[] states() {
+            return states;
+        }
+
         @Override
         public boolean equals(Object o) {
-            return o instanceof CellStates c && Arrays.equals(states, c.states);
+            return o == this || o instanceof CellStates c && hash == c.hash && Arrays.equals(states, c.states);
         }
 
         @Override
         public int hashCode() {
-            return Arrays.hashCode(states);
+            return hash;
         }
     }
 }

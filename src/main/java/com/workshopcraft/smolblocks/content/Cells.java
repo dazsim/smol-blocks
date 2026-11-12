@@ -67,28 +67,34 @@ public final class Cells {
     }
 
     /** Splits a mask of one source block into as few pieces as a greedy pass finds. */
-    public static List<Shape> decompose(int mask) {
-        List<Shape> out = new ArrayList<>();
-        for (Direction.Axis axis : Direction.Axis.values()) {
+    /** A piece taken out of a mask: its shape and the cells it covers. */
+    public record Piece(Shape shape, int mask) {}
+
+    private static final Direction.Axis[] ORDER = {Direction.Axis.Y, Direction.Axis.X, Direction.Axis.Z};
+
+    /** Greedily splits a mask into the largest pieces, slabs first. */
+    public static List<Piece> decompose(int mask) {
+        List<Piece> out = new ArrayList<>();
+        for (Direction.Axis axis : ORDER) {
             for (int side = 0; side < 2; side++) {
                 int plane = plane(axis, side);
                 if ((mask & plane) == plane) {
-                    out.add(axis == Direction.Axis.Y ? Shape.SLAB : Shape.VERTICAL_SLAB);
+                    out.add(new Piece(axis == Direction.Axis.Y ? Shape.SLAB : Shape.VERTICAL_SLAB, plane));
                     mask &= ~plane;
                 }
             }
         }
-        for (Direction.Axis axis : Direction.Axis.values()) {
+        for (Direction.Axis axis : ORDER) {
             for (int i = 0; i < 8; i++) {
                 if (coord(i, axis) != 0) continue;
                 int line = mask(axis == Direction.Axis.X, axis == Direction.Axis.Y, axis == Direction.Axis.Z, x(i), y(i), z(i));
                 if ((mask & line) == line) {
-                    out.add(axis == Direction.Axis.Y ? Shape.VERTICAL_QUARTER : Shape.QUARTER);
+                    out.add(new Piece(axis == Direction.Axis.Y ? Shape.VERTICAL_QUARTER : Shape.QUARTER, line));
                     mask &= ~line;
                 }
             }
         }
-        for (int i = 0; i < Integer.bitCount(mask); i++) out.add(Shape.EIGHTH);
+        for (int i = 0; i < 8; i++) if ((mask & 1 << i) != 0) out.add(new Piece(Shape.EIGHTH, 1 << i));
         return out;
     }
 

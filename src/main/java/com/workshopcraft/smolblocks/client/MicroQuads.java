@@ -60,10 +60,12 @@ public final class MicroQuads {
     private static void emit(QuadCollection.Builder out, @Nullable BlockState[] cells, int cell, BakedQuad q, Direction d,
                              boolean remapTint, boolean worldFaces, Vector3fc offset) {
         int n = Cells.neighbour(cell, d);
-        if (n >= 0 && cells[n] != null) return;
+        BlockState self = cells[cell];
+        if (n >= 0 && cells[n] != null && (cells[n].isSolidRender() || self.skipRendering(cells[n], d))) return;
         BakedQuad clipped = clip(q, d, cell, remapTint ? cell : -1, offset);
         if (clipped == null) return;
-        if (worldFaces && n < 0) out.addCulledFace(d, clipped);
+        // The block state only reports opaque cells as occluding, so see-through cells are never culled by neighbours
+        if (worldFaces && n < 0 && self.isSolidRender()) out.addCulledFace(d, clipped);
         else out.addUnculledFace(clipped);
     }
 

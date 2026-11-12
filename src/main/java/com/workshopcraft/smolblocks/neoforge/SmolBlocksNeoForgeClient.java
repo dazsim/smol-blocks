@@ -13,6 +13,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterBlockStateModels;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterItemModelsEvent;
@@ -24,6 +25,7 @@ import java.util.List;
 public class SmolBlocksNeoForgeClient {
     public SmolBlocksNeoForgeClient(IEventBus modBus) {
         modBus.addListener((RegisterBlockStateModels e) -> e.registerModel(SmolBlocks.id("micro"), MicroBlockModel.Unbaked.CODEC));
+        modBus.addListener((ModelEvent.BakingCompleted e) -> MicroBlockModel.clearCache());
         modBus.addListener((RegisterItemModelsEvent e) -> e.register(SmolBlocks.id("piece"), PieceItemModel.Unbaked.MAP_CODEC));
         modBus.addListener((RegisterColorHandlersEvent.BlockTintSources e) -> {
             List<BlockTintSource> sources = new ArrayList<>();

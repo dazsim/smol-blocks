@@ -49,7 +49,7 @@ public final class SmolContent {
 
     public static void registerBlocks(BiConsumer<Identifier, Block> r) {
         BlockBehaviour.Properties props = BlockBehaviour.Properties.of().strength(1.5F, 6.0F).sound(SoundType.STONE)
-                .noOcclusion().dynamicShape().pushReaction(PushReaction.BLOCK)
+                .lightLevel(s -> s.getValue(MicroBlock.LIGHT)).dynamicShape().pushReaction(PushReaction.BLOCK)
                 .setId(ResourceKey.create(Registries.BLOCK, SmolBlocks.id("micro")));
         MICRO = new MicroBlock(props);
         r.accept(SmolBlocks.id("micro"), MICRO);

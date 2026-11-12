@@ -12,28 +12,60 @@ import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
+//? if neoforge
+import net.minecraft.world.level.Explosion;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * The block state carries which cells are opaque and the brightest light any cell gives off, so light
+ * occlusion, neighbour face culling and emission work from vanilla's state caches. Everything else
+ * comes from the block entity.
+ */
 public class MicroBlock extends Block implements EntityBlock {
     public static final MapCodec<MicroBlock> CODEC = simpleCodec(MicroBlock::new);
+    public static final IntegerProperty OPAQUE = IntegerProperty.create("opaque", 0, 255);
+    public static final IntegerProperty LIGHT = IntegerProperty.create("light", 0, 15);
 
     public MicroBlock(Properties properties) {
         super(properties);
+        registerDefaultState(stateDefinition.any().setValue(OPAQUE, 0).setValue(LIGHT, 0));
     }
 
     @Override
     protected MapCodec<? extends Block> codec() {
         return CODEC;
+    }
+
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        builder.add(OPAQUE, LIGHT);
+    }
+
+    /** The state matching a set of cells. */
+    public BlockState stateFor(@Nullable BlockState[] cells) {
+        int opaque = 0, light = 0;
+        for (int i = 0; i < 8; i++) {
+            BlockState s = cells[i];
+            if (s == null) continue;
+            if (s.isSolidRender()) opaque |= 1 << i;
+            light = Math.max(light, s.getLightEmission());
+        }
+        return defaultBlockState().setValue(OPAQUE, opaque).setValue(LIGHT, light);
     }
 
     @Override
@@ -57,8 +89,18 @@ public class MicroBlock extends Block implements EntityBlock {
     }
 
     @Override
-    protected boolean propagatesSkylightDown(BlockState state) {
+    protected VoxelShape getOcclusionShape(BlockState state) {
+        return Cells.shape(state.getValue(OPAQUE));
+    }
+
+    @Override
+    protected boolean useShapeForLightOcclusion(BlockState state) {
         return true;
+    }
+
+    @Override
+    protected boolean propagatesSkylightDown(BlockState state) {
+        return state.getValue(OPAQUE) != 255;
     }
 
     @Override
@@ -75,31 +117,83 @@ public class MicroBlock extends Block implements EntityBlock {
     @Override
     protected List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
         if (!(params.getOptionalParameter(LootContextParams.BLOCK_ENTITY) instanceof MicroBlockEntity be)) return List.of();
-        return drops(be);
+        Player player = params.getOptionalParameter(LootContextParams.THIS_ENTITY) instanceof Player p ? p : null;
+        Float radius = params.getOptionalParameter(LootContextParams.EXPLOSION_RADIUS);
+        List<ItemStack> out = new ArrayList<>();
+        for (ItemStack stack : drops(be)) {
+            BlockState source = stack.get(SmolContent.SOURCE);
+            if (player != null && source != null && !player.hasCorrectToolForDrops(source)) continue;
+            if (radius != null && radius > 1.0F && params.getLevel().getRandom().nextFloat() > 1.0F / radius) continue;
+            out.add(stack);
+        }
+        return out;
     }
 
     public static List<ItemStack> drops(MicroBlockEntity be) {
-        Map<BlockState, Integer> masks = new LinkedHashMap<>();
-        for (int i = 0; i < 8; i++) {
-            BlockState s = be.cell(i);
-            if (s != null) masks.merge(s, 1 << i, (a, b) -> a | b);
-        }
         List<ItemStack> out = new ArrayList<>();
-        masks.forEach((s, m) -> {
+        sourceMasks(be).forEach((s, m) -> {
             Map<Shape, Integer> counts = new LinkedHashMap<>();
-            for (Shape shape : Cells.decompose(m)) counts.merge(shape, 1, Integer::sum);
+            for (Cells.Piece piece : Cells.decompose(m)) counts.merge(piece.shape(), 1, Integer::sum);
             counts.forEach((shape, n) -> out.add(PieceItem.create(s, shape, n)));
         });
         return out;
     }
 
-    @Override
-    protected ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
-        if (level.getBlockEntity(pos) instanceof MicroBlockEntity be && be.primary() != null) return PieceItem.create(be.primary(), Shape.EIGHTH, 1);
+    private static Map<BlockState, Integer> sourceMasks(MicroBlockEntity be) {
+        Map<BlockState, Integer> masks = new LinkedHashMap<>();
+        for (int i = 0; i < 8; i++) {
+            BlockState s = be.cell(i);
+            if (s != null) masks.merge(s, 1 << i, (a, b) -> a | b);
+        }
+        return masks;
+    }
+
+    /** The piece that covers a cell, as it would drop. */
+    public static ItemStack pieceAt(MicroBlockEntity be, int cell) {
+        BlockState s = be.cell(cell);
+        if (s == null) return ItemStack.EMPTY;
+        for (Cells.Piece piece : Cells.decompose(sourceMasks(be).get(s))) {
+            if ((piece.mask() & 1 << cell) != 0) return PieceItem.create(s, piece.shape(), 1);
+        }
         return ItemStack.EMPTY;
     }
 
+    private static int firstCell(MicroBlockEntity be) {
+        for (int i = 0; i < 8; i++) if (be.cell(i) != null) return i;
+        return -1;
+    }
+
+    @Override
+    protected ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
+        if (!(level.getBlockEntity(pos) instanceof MicroBlockEntity be) || firstCell(be) < 0) return ItemStack.EMPTY;
+        return pieceAt(be, firstCell(be));
+    }
+
     //? if neoforge {
+    @Override
+    public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData, Player player) {
+        if (!(level.getBlockEntity(pos) instanceof MicroBlockEntity be)) return ItemStack.EMPTY;
+        HitResult hit = player.pick(player.blockInteractionRange(), 1.0F, false);
+        if (hit instanceof BlockHitResult bh && bh.getBlockPos().equals(pos)) {
+            Vec3 n = Vec3.atLowerCornerOf(bh.getDirection().getUnitVec3i());
+            Vec3 p = bh.getLocation().subtract(n.scale(0.001)).subtract(Vec3.atLowerCornerOf(pos));
+            int cell = Cells.index(p.x >= 0.5 ? 1 : 0, p.y >= 0.5 ? 1 : 0, p.z >= 0.5 ? 1 : 0);
+            if (be.cell(cell) != null) return pieceAt(be, cell);
+        }
+        return getCloneItemStack(level, pos, state, includeData);
+    }
+
+    @Override
+    public float getExplosionResistance(BlockState state, BlockGetter level, BlockPos pos, Explosion explosion) {
+        if (!(level.getBlockEntity(pos) instanceof MicroBlockEntity be)) return super.getExplosionResistance(state, level, pos, explosion);
+        float best = 0.0F;
+        for (int i = 0; i < 8; i++) {
+            BlockState s = be.cell(i);
+            if (s != null) best = Math.max(best, s.getExplosionResistance(level, pos, explosion));
+        }
+        return best;
+    }
+
     @Override
     public SoundType getSoundType(BlockState state, LevelReader level, BlockPos pos, @Nullable Entity entity) {
         if (level.getBlockEntity(pos) instanceof MicroBlockEntity be && be.primary() != null) return be.primary().getSoundType();

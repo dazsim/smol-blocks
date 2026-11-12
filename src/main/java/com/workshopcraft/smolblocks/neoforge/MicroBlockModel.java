@@ -24,15 +24,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/** One baked part per distinct cell combination, shared by every block state and cleared when models rebake. */
 public class MicroBlockModel implements DynamicBlockStateModel {
-    private static final int CACHE_LIMIT = 4096;
-    private final Map<MicroBlockEntity.CellStates, MicroPart> cache = new ConcurrentHashMap<>();
+    private static final int CACHE_LIMIT = 16384;
+    private static final Map<MicroBlockEntity.CellStates, MicroPart> cache = new ConcurrentHashMap<>();
+
+    public static void clearCache() {
+        cache.clear();
+    }
 
     private static MicroBlockEntity.@Nullable CellStates cells(BlockAndTintGetter level, BlockPos pos) {
         return level.getModelData(pos).get(MicroBlockEntity.CELLS);
     }
 
-    private MicroPart part(MicroBlockEntity.CellStates cells) {
+    private static MicroPart part(MicroBlockEntity.CellStates cells) {
         MicroPart part = cache.get(cells);
         if (part != null) return part;
         if (cache.size() > CACHE_LIMIT) cache.clear();

@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -70,6 +71,15 @@ public class PieceItem extends Item {
         Level level = ctx.getLevel();
         Player player = ctx.getPlayer();
         Placement pl = placement(shape, ctx.getClickLocation(), ctx.getClickedFace(), ctx.getHorizontalDirection());
+        BlockPos clicked = ctx.getClickedPos();
+        BlockState clickedState = level.getBlockState(clicked);
+        if (!(clickedState.getBlock() instanceof MicroBlock) && clickedState.canBeReplaced()) {
+            // Clicking grass, snow or similar puts the piece in that space, resting on the floor like a placed block
+            Vec3 hit = ctx.getClickLocation();
+            Vec3 floor = new Vec3(Mth.clamp(hit.x, clicked.getX() + 0.01, clicked.getX() + 0.99), clicked.getY(),
+                    Mth.clamp(hit.z, clicked.getZ() + 0.01, clicked.getZ() + 0.99));
+            pl = placement(shape, floor, Direction.UP, ctx.getHorizontalDirection());
+        }
         BlockPos pos = pl.pos();
         if (player != null && !player.mayUseItemAt(pos, ctx.getClickedFace(), stack)) return InteractionResult.FAIL;
         if (!level.isInWorldBounds(pos)) return InteractionResult.FAIL;
@@ -85,7 +95,9 @@ public class PieceItem extends Item {
         if (level.isClientSide()) return InteractionResult.SUCCESS;
 
         if (be == null) {
-            if (!level.setBlock(pos, SmolContent.MICRO.defaultBlockState(), 3)) return InteractionResult.FAIL;
+            BlockState[] cells = new BlockState[8];
+            for (int i = 0; i < 8; i++) if ((pl.mask() & 1 << i) != 0) cells[i] = source;
+            if (!level.setBlock(pos, ((MicroBlock) SmolContent.MICRO).stateFor(cells), 3)) return InteractionResult.FAIL;
             if (!(level.getBlockEntity(pos) instanceof MicroBlockEntity m)) return InteractionResult.FAIL;
             be = m;
         }
