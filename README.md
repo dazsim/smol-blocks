@@ -31,6 +31,13 @@ Fabric builds need Fabric API. Every version and loader has the same items, reci
 
 The saw loses one durability per cut and stays in the grid. Hard blocks in `smolblocks:needs_diamond_saw` (by default everything in `minecraft:needs_diamond_tool`, such as obsidian and ancient debris) need the diamond saw, and so do pieces cut from them.
 
+## Precision pickaxes
+
+- Iron Precision Pickaxe: iron ingot, iron ingot, iron nugget across the top row, with 2 sticks down the middle column. 250 uses.
+- Diamond Precision Pickaxe: diamond, diamond, iron nugget across the top row, with 2 sticks down the middle column. 1561 uses.
+
+Mining a space with a precision pickaxe breaks only the piece you are looking at and drops it as an eighth. The drop follows the source block's own rules, so glass needs Silk Touch, stone needs a pickaxe, and a diamond-tier block needs the diamond precision pickaxe. Mining speed comes from that piece's source block. Each piece costs 1 durability. When the last piece goes, the space turns into air, or water if it was waterlogged. On any other block a precision pickaxe works like the vanilla pickaxe of its tier and takes the same enchantments. Any other tool still breaks the whole space at once.
+
 ## Cutting
 
 Put a saw and one block or piece in the crafting grid. Each cut gives 2 pieces.
@@ -47,7 +54,7 @@ Put a saw and one block or piece in the crafting grid. Each cut gives 2 pieces.
 
 ## Placing
 
-Pieces go into the half or quarter of the space nearest where you click. Vertical slabs sit flat against the face you click (or face you when placed on a top or bottom face). Quarters lie across your view. Pieces can be added to a space that already has pieces as long as the cells are free. Clicking grass, snow or another replaceable block puts the piece in that space. Mining a space breaks all of it and drops every piece you could harvest with the tool in hand, so stone pieces mined by hand drop nothing. Mining speed and blast resistance come from the source blocks. Pick block gives the piece you are looking at.
+Pieces go into the half or quarter of the space nearest where you click. Vertical slabs sit flat against the face you click (or face you when placed on a top or bottom face). Quarters lie across your view. Pieces can be added to a space that already has pieces as long as the cells are free. Clicking grass, snow or another replaceable block puts the piece in that space. Mining a space with any tool other than a precision pickaxe breaks all of it and drops every piece you could harvest with the tool in hand, so stone pieces mined by hand drop nothing. Mining speed and blast resistance come from the source blocks. Pick block gives the piece you are looking at on NeoForge and Forge, and the first piece in the space on Fabric.
 
 Opaque pieces block light like the full block would on their faces, and pieces cut from glowing blocks give off light.
 
@@ -59,7 +66,7 @@ Every cell remembers its own source block, so one space can mix stone, glass, wo
 
 A space with any empty cell can hold water, like a vanilla slab. Placing a piece into water keeps the water, and buckets work as usual. A face only holds water back when all 4 cells touching it are filled, so a bottom slab keeps water above it and glass vertical slabs make a fish tank wall. A completely filled space holds no water.
 
-Water only draws in the empty cells of the space, so it never shows through the pieces.
+Water only draws in the empty cells of the space, so it never shows through opaque pieces. Behind glass and other see-through pieces it shows the way it does behind a glass block, whether the glass is in the same space as the water or in the next one.
 
 ## Which blocks can be cut
 
@@ -76,7 +83,7 @@ Blocks whose side has a tinted overlay, like grass, get the strip without being 
 
 ## JEI
 
-On 26.1.2 NeoForge with JEI installed, example cuts show up under crafting and the saws have an info page. The other builds have no recipe viewer support yet; the recipes still work in the crafting grid.
+On 26.1.2 NeoForge with JEI installed, example cuts show up under crafting, and the saws and precision pickaxes have info pages. The other builds have no recipe viewer support yet; the recipes still work in the crafting grid.
 
 ## Known limits
 
@@ -85,6 +92,6 @@ On 26.1.2 NeoForge with JEI installed, example cuts show up under crafting and t
 - Spaces with pieces cannot be pushed by pistons.
 - Moving a world with pieces to a different Minecraft version is not supported.
 - Fabric on 1.20.1 and 1.21.1 renders through the Fabric renderer API. With Sodium, install Indium as well.
-- Water does not draw against see-through pieces in a neighbouring space that holds water too; build tank walls so the glass and the water share a space, or put plain water next to them.
+- The crack overlay while mining with a precision pickaxe covers the whole space, not just the piece being mined.
 - Shader packs and connected texture mods are untested.
 - No EMI or REI support.
