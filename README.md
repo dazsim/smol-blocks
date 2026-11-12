@@ -25,8 +25,14 @@ Put a saw and one block or piece in the crafting grid. Each cut gives 2 pieces.
 
 ## Placing
 
-Pieces go into the half or quarter of the space nearest where you click. Vertical slabs sit flat against the face you click (or face you when placed on a top or bottom face). Quarters lie across your view. Pieces can be added to a space that already has pieces as long as the cells are free. Mining a space breaks all of it and drops every piece.
+Pieces go into the half or quarter of the space nearest where you click. Vertical slabs sit flat against the face you click (or face you when placed on a top or bottom face). Quarters lie across your view. Pieces can be added to a space that already has pieces as long as the cells are free. Clicking grass, snow or another replaceable block puts the piece in that space. Mining a space breaks all of it and drops every piece you could harvest with the tool in hand, so stone pieces mined by hand drop nothing. Mining speed and blast resistance come from the source blocks. Pick block gives the piece you are looking at.
+
+Opaque pieces block light like the full block would on their faces, and pieces cut from glowing blocks give off light.
 
 ## Which blocks can be cut
 
-Full cube, solid, no block entity. Tags `smolblocks:cuttable` (always allowed) and `smolblocks:uncuttable` (never allowed) override this.
+Full cube, solid, no block entity. Tags `smolblocks:cuttable` (always allowed, glass and stained glass by default) and `smolblocks:uncuttable` (never allowed, such as redstone and utility blocks) override this.
+
+## JEI
+
+With JEI installed, example cuts show up under crafting and the saws have an info page.
