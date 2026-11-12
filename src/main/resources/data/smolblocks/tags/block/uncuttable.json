@@ -25,6 +25,41 @@
     "minecraft:infested_mossy_stone_bricks",
     "minecraft:infested_cracked_stone_bricks",
     "minecraft:infested_chiseled_stone_bricks",
-    "minecraft:infested_deepslate"
+    "minecraft:infested_deepslate",
+    "minecraft:redstone_ore",
+    "minecraft:deepslate_redstone_ore",
+    "minecraft:frosted_ice",
+    {
+      "id": "minecraft:copper_bulb",
+      "required": false
+    },
+    {
+      "id": "minecraft:waxed_copper_bulb",
+      "required": false
+    },
+    {
+      "id": "minecraft:exposed_copper_bulb",
+      "required": false
+    },
+    {
+      "id": "minecraft:waxed_exposed_copper_bulb",
+      "required": false
+    },
+    {
+      "id": "minecraft:weathered_copper_bulb",
+      "required": false
+    },
+    {
+      "id": "minecraft:waxed_weathered_copper_bulb",
+      "required": false
+    },
+    {
+      "id": "minecraft:oxidized_copper_bulb",
+      "required": false
+    },
+    {
+      "id": "minecraft:waxed_oxidized_copper_bulb",
+      "required": false
+    }
   ]
 }
