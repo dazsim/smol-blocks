@@ -60,7 +60,7 @@ public final class LegacyWaterTrim implements VertexConsumer {
 
     private void quad() {
         int axis = planeAxis();
-        if (side != null && !Cells.onSide(side, axis, (pos[0][axis] + pos[2][axis]) / 2 - (axis == 0 ? baseX : axis == 1 ? baseY : baseZ))) return;
+        if (side != null && !Cells.onSide(side, axis, (pos[0][axis] + pos[2][axis]) / 2 - (axis == 0 ? baseX : axis == 1 ? baseY : baseZ)) && side != Direction.UP) return;
         float[] s = splits(pos[0], pos[3], pos[1], pos[2]);
         float[] t = splits(pos[0], pos[1], pos[3], pos[2]);
         for (int i = 0; i + 1 < s.length; i++) {
@@ -137,6 +137,7 @@ public final class LegacyWaterTrim implements VertexConsumer {
     private void emit(float s, float t, int axis, float shift) {
         float[] p = lerp(s, t);
         p[axis] += shift;
+        if (side == Direction.UP && axis != 1 && p[1] - baseY > 0.5F) p[1] = baseY + 1.0F;
         // Colour and light are uniform enough across a water quad to take them from the nearest corner
         int k = s < 0.5F ? (t < 0.5F ? 0 : 3) : (t < 0.5F ? 1 : 2);
         //? if >=1.21 {

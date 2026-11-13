@@ -115,6 +115,8 @@ public final class Cells {
             return rel < 0.5F ? 0.5F : axis == 1 ? 0.499F - rel : -0.5F;
         }
         if (side == null) return 0.0F;
+        // Still-water sides and bottom from the pass that hid the water above
+        if (side == Direction.UP && axis != 1) return 0.0F;
         if ((neighbour & 1 << (cell ^ 1 << axis)) == 0) return Float.NaN;
         // Water above means this water is full height, which the renderer could not see
         return side == Direction.UP ? 0.999F - rel : 0.0F;

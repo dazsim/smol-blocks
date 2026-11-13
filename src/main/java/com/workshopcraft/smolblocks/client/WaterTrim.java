@@ -72,7 +72,7 @@ public final class WaterTrim implements FluidRenderer.Output {
 
         private void quad() {
             int axis = planeAxis();
-            if (side != null && !Cells.onSide(side, axis, (pos[0][axis] + pos[2][axis]) / 2 - (axis == 0 ? baseX : axis == 1 ? baseY : baseZ))) return;
+            if (side != null && !Cells.onSide(side, axis, (pos[0][axis] + pos[2][axis]) / 2 - (axis == 0 ? baseX : axis == 1 ? baseY : baseZ)) && side != Direction.UP) return;
             float[] s = splits(pos[0], pos[3], pos[1], pos[2]);
             float[] t = splits(pos[0], pos[1], pos[3], pos[2]);
             for (int i = 0; i + 1 < s.length; i++) {
@@ -152,6 +152,8 @@ public final class WaterTrim implements FluidRenderer.Output {
         private void emit(float s, float t, int axis, float shift) {
             float[] r = lerp(s, t);
             r[axis] += shift;
+            // Stretch still-water sides up to the top of the space so they meet the water above
+            if (side == Direction.UP && axis != 1 && r[1] - baseY > 0.5F) r[1] = baseY + 1.0F;
             out.addVertex(r[0], r[1], r[2], color, r[3], r[4], overlay, light, nx, ny, nz);
         }
 
