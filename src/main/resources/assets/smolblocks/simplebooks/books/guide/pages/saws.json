@@ -1,0 +1,45 @@
+{
+  "section": "basics",
+  "sort": 1,
+  "title": "Saws",
+  "subtitle": "How you cut blocks",
+  "icon": "smolblocks:iron_saw",
+  "text": "Craft an Iron Saw or a Diamond Saw, then put the saw in a crafting grid with one block, or with a piece you have already cut. The saw stays in the grid and loses 1 durability per cut. Each cut gives 2 pieces.\n\nThe Iron Saw lasts 250 cuts. The Diamond Saw lasts 1561 cuts. Obsidian, ancient debris and other blocks that need a diamond tool need the Diamond Saw, and so do pieces cut from them.",
+  "right_title": "Recipes",
+  "right_icon": "smolblocks:diamond_saw",
+  "steps": [
+    {
+      "kind": "craft_shaped",
+      "title": "Iron Saw",
+      "pattern": [
+        "|II"
+      ],
+      "key": {
+        "|": "minecraft:stick",
+        "I": "minecraft:iron_ingot"
+      },
+      "output": "smolblocks:iron_saw",
+      "note": "1x Stick, 2x Iron Ingot. 250 cuts."
+    },
+    {
+      "kind": "craft_shaped",
+      "title": "Diamond Saw",
+      "pattern": [
+        "|II"
+      ],
+      "key": {
+        "|": "minecraft:stick",
+        "I": "minecraft:diamond"
+      },
+      "output": "smolblocks:diamond_saw",
+      "note": "1x Stick, 2x Diamond. 1561 cuts."
+    }
+  ],
+  "links": [
+    {
+      "item": "minecraft:stone",
+      "label": "How cuts work",
+      "page": "cutting"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "title": "book.smolblocks.guide.title",
+  "default_template": "simplebooks:text",
+  "tabs": true,
+  "sections": [
+    "contents",
+    {
+      "id": "basics",
+      "title": "book.smolblocks.guide.section.basics",
+      "icon": "smolblocks:iron_saw"
+    },
+    {
+      "id": "using",
+      "title": "book.smolblocks.guide.section.using",
+      "icon": "smolblocks:iron_precision_pickaxe"
+    }
+  ]
+}

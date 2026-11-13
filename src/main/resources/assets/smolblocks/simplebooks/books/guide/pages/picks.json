@@ -1,0 +1,51 @@
+{
+  "section": "using",
+  "sort": 0,
+  "title": "Precision pickaxes",
+  "subtitle": "Break one piece at a time",
+  "icon": "smolblocks:iron_precision_pickaxe",
+  "text": "A normal tool breaks the whole space at once and drops every piece you could harvest with that tool, so stone pieces mined by hand drop nothing.\n\nA precision pickaxe breaks only the piece you are looking at, and drops it as an eighth. Each piece costs 1 durability. When the last piece goes, the space turns into air, or water if it was waterlogged.\n\nOn any other block, a precision pickaxe works like the vanilla pickaxe of its tier and can take the same enchantments.",
+  "right_title": "Recipes",
+  "right_icon": "smolblocks:diamond_precision_pickaxe",
+  "steps": [
+    {
+      "kind": "craft_shaped",
+      "title": "Iron Precision Pickaxe",
+      "pattern": [
+        "HHN",
+        " | ",
+        " | "
+      ],
+      "key": {
+        "H": "minecraft:iron_ingot",
+        "N": "minecraft:iron_nugget",
+        "|": "minecraft:stick"
+      },
+      "output": "smolblocks:iron_precision_pickaxe",
+      "note": "2x Iron Ingot, 1x Iron Nugget, 2x Stick. 250 uses."
+    },
+    {
+      "kind": "craft_shaped",
+      "title": "Diamond Precision Pickaxe",
+      "pattern": [
+        "HHN",
+        " | ",
+        " | "
+      ],
+      "key": {
+        "H": "minecraft:diamond",
+        "N": "minecraft:iron_nugget",
+        "|": "minecraft:stick"
+      },
+      "output": "smolblocks:diamond_precision_pickaxe",
+      "note": "2x Diamond, 1x Iron Nugget, 2x Stick. 1561 uses."
+    }
+  ],
+  "links": [
+    {
+      "item": "minecraft:glass",
+      "label": "Drops and harvesting",
+      "page": "drops"
+    }
+  ]
+}

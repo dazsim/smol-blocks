@@ -14,6 +14,10 @@ Cut basic blocks into slabs, vertical slabs, quarters and eighths with a saw, th
 
 Fabric builds need Fabric API. Every version and loader has the same items, recipes, tags and rendering.
 
+## Guide
+
+When Simple Books is installed, craft a book with an iron nugget to get an in-game guide to cutting, placing, precision pickaxes, waterlogging and what can be cut.
+
 ## Shapes
 
 | Shape | Cells | Size |

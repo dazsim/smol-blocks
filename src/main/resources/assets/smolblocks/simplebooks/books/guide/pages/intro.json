@@ -1,0 +1,58 @@
+{
+  "section": "basics",
+  "sort": 0,
+  "title": "Smol Blocks",
+  "subtitle": "A short guide",
+  "icon": "smolblocks:iron_saw",
+  "text": "Cut basic solid blocks into slabs, vertical slabs, quarters and eighths with a saw, then place them and mix them together. Each piece keeps the textures of the block it was cut from, including modded blocks.\n\nAn eighth is 1/8 of a full block: half the width, depth and height. One block space can hold up to 8 eighths, and each one can come from a different source block.\n\nCraft this book from a book and an iron nugget.",
+  "right_title": "In this guide",
+  "steps": [
+    {
+      "kind": "text",
+      "number": false,
+      "title": "Saws",
+      "text": "Craft an iron or diamond saw, then cut a block or piece in the crafting grid. The saw stays in the grid and loses durability."
+    },
+    {
+      "kind": "text",
+      "number": false,
+      "title": "Cuts",
+      "text": "The saw's position sets a horizontal or vertical cut, from full blocks down to eighths."
+    },
+    {
+      "kind": "text",
+      "number": false,
+      "title": "Placing",
+      "text": "Mix up to 8 pieces in one space. Each piece keeps the look of the block it came from."
+    },
+    {
+      "kind": "text",
+      "number": false,
+      "title": "Precision pickaxes",
+      "text": "Break only the piece you are looking at. A normal tool breaks the whole space."
+    },
+    {
+      "kind": "text",
+      "number": false,
+      "title": "Water and limits",
+      "text": "Build fish tanks from sealed glass faces. Some blocks cannot be cut, and pieces cannot be put back together."
+    }
+  ],
+  "links": [
+    {
+      "item": "smolblocks:iron_saw",
+      "label": "Saws",
+      "page": "saws"
+    },
+    {
+      "item": "minecraft:stone",
+      "label": "Cutting",
+      "page": "cutting"
+    },
+    {
+      "item": "smolblocks:iron_precision_pickaxe",
+      "label": "Precision pickaxes",
+      "page": "picks"
+    }
+  ]
+}

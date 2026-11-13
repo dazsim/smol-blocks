@@ -1,0 +1,34 @@
+{
+  "section": "using",
+  "sort": 1,
+  "title": "Drops",
+  "subtitle": "The same rules as the source block",
+  "icon": "minecraft:glass",
+  "text": "Drops follow the source block's own rules. Glass needs Silk Touch to drop. Stone needs a pickaxe. A diamond-tier block needs the Diamond Precision Pickaxe.\n\nMining speed and blast resistance also come from the source blocks.",
+  "right_title": "Hard blocks",
+  "right_icon": "smolblocks:diamond_saw",
+  "steps": [
+    {
+      "kind": "text",
+      "number": false,
+      "text": "To cut obsidian, ancient debris and other blocks that need a diamond tool, you need the Diamond Saw. The same is true for pieces already cut from those blocks."
+    },
+    {
+      "kind": "text",
+      "number": false,
+      "text": "A precision pickaxe also follows those rules when you mine a piece: a diamond-tier piece needs the Diamond Precision Pickaxe, and glass still needs Silk Touch."
+    }
+  ],
+  "links": [
+    {
+      "item": "smolblocks:diamond_saw",
+      "label": "Saws",
+      "page": "saws"
+    },
+    {
+      "item": "smolblocks:diamond_precision_pickaxe",
+      "label": "Precision pickaxes",
+      "page": "picks"
+    }
+  ]
+}

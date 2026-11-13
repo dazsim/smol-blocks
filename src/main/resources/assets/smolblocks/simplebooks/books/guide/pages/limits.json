@@ -1,0 +1,29 @@
+{
+  "section": "using",
+  "sort": 3,
+  "title": "What cannot be cut",
+  "subtitle": "Limits and leftover rules",
+  "icon": "minecraft:furnace",
+  "text": "Most full, solid, basic blocks can be cut, including modded ones. Chests, furnaces, machines and other blocks with inventories or special behaviour cannot.\n\nConcrete powder cannot be cut. Bedrock, infested blocks and most redstone and utility blocks cannot be cut either. Glass and stained glass can be cut.",
+  "right_title": "Other limits",
+  "steps": [
+    {
+      "kind": "text",
+      "number": false,
+      "title": "Falling blocks",
+      "text": "Sand and gravel pieces stay where you place them. They do not fall."
+    },
+    {
+      "kind": "text",
+      "number": false,
+      "title": "No reassembly",
+      "text": "You cannot craft pieces back into a full block. Once a block is cut, it stays as pieces."
+    },
+    {
+      "kind": "text",
+      "number": false,
+      "title": "Datapacks",
+      "text": "Datapacks can change what is allowed with the smolblocks:cuttable, smolblocks:uncuttable and smolblocks:needs_diamond_saw tags."
+    }
+  ]
+}

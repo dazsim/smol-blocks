@@ -1,0 +1,47 @@
+{
+  "section": "basics",
+  "sort": 2,
+  "title": "Cutting",
+  "subtitle": "Saw position and sizes",
+  "icon": "minecraft:stone",
+  "text": "The saw's position in the grid sets the cut axis.\n\nSaw directly above or below the block: a horizontal cut.\n\nSaw beside or diagonal to the block: a vertical cut.\n\nPut the saw in the grid with one block, or with a piece you have already cut. Each cut gives 2 pieces.",
+  "right_title": "What you get",
+  "steps": [
+    {
+      "kind": "text",
+      "number": false,
+      "title": "Full block",
+      "text": "2 slabs from a horizontal cut, or 2 vertical slabs from a vertical cut."
+    },
+    {
+      "kind": "text",
+      "number": false,
+      "title": "Slab",
+      "text": "2 quarters, either way."
+    },
+    {
+      "kind": "text",
+      "number": false,
+      "title": "Vertical slab",
+      "text": "2 quarters from a horizontal cut, or 2 vertical quarters from a vertical cut."
+    },
+    {
+      "kind": "text",
+      "number": false,
+      "title": "Quarter or vertical quarter",
+      "text": "2 eighths, either way."
+    }
+  ],
+  "links": [
+    {
+      "item": "smolblocks:iron_saw",
+      "label": "Saws",
+      "page": "saws"
+    },
+    {
+      "item": "smolblocks:piece",
+      "label": "Placing and mixing",
+      "page": "placing"
+    }
+  ]
+}

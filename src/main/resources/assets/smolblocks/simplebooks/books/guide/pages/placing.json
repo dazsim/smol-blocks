@@ -1,0 +1,38 @@
+{
+  "section": "basics",
+  "sort": 3,
+  "title": "Placing and mixing",
+  "subtitle": "Up to 8 pieces in one space",
+  "icon": "smolblocks:piece",
+  "text": "A piece goes into the half or quarter of the space nearest where you click. Vertical slabs sit flat against the face you click, or face you when placed on a top or bottom face. You can keep adding pieces to a space as long as those cells are free.\n\nEvery cell remembers its own source block, so one space can mix stone, glass, wood and anything else that can be cut.",
+  "right_title": "Look and light",
+  "steps": [
+    {
+      "kind": "text",
+      "number": false,
+      "text": "Each piece keeps its source's colour, light and look. Grass, leaves and other tinted blocks follow the biome. A grass block cut into lower pieces still shows its green side strip."
+    },
+    {
+      "kind": "text",
+      "number": false,
+      "text": "Faces between two opaque pieces are hidden. Glass next to the same glass hides the shared face, including across neighbouring spaces."
+    },
+    {
+      "kind": "text",
+      "number": false,
+      "text": "Pieces cut from glowing blocks still give off light. Opaque pieces block light on their faces the way the full block would."
+    }
+  ],
+  "links": [
+    {
+      "item": "smolblocks:iron_precision_pickaxe",
+      "label": "Precision pickaxes",
+      "page": "picks"
+    },
+    {
+      "item": "minecraft:water_bucket",
+      "label": "Water and fish tanks",
+      "page": "water"
+    }
+  ]
+}

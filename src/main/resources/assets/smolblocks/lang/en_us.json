@@ -12,5 +12,8 @@
   "item.smolblocks.piece.eighth": "%s Eighth",
   "block.smolblocks.micro": "Smol Block",
   "jei.smolblocks.saw": "Put a saw and a block or piece in a crafting grid to cut it in two. A saw above or below cuts it flat, a saw beside or diagonal cuts it upright. Hard blocks such as obsidian need the diamond saw.",
-  "jei.smolblocks.precision_pickaxe": "Mines one piece of a Smol Block at a time: the piece you are looking at. It drops that piece the way the source block would drop, and the last piece leaves air or water behind. On other blocks it works like a normal pickaxe of its tier."
+  "jei.smolblocks.precision_pickaxe": "Mines one piece of a Smol Block at a time: the piece you are looking at. It drops that piece the way the source block would drop, and the last piece leaves air or water behind. On other blocks it works like a normal pickaxe of its tier.",
+  "book.smolblocks.guide.title": "Smol Blocks Guide",
+  "book.smolblocks.guide.section.basics": "Basics",
+  "book.smolblocks.guide.section.using": "Using Pieces"
 }

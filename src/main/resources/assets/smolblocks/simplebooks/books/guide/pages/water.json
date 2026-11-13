@@ -1,0 +1,21 @@
+{
+  "section": "using",
+  "sort": 2,
+  "title": "Water and fish tanks",
+  "subtitle": "A face is sealed when all 4 cells are filled",
+  "icon": "minecraft:water_bucket",
+  "text": "A space with any empty cell can hold water, like a vanilla slab. Placing a piece into water keeps the water, and buckets work as usual.\n\nA face only holds water back when all 4 cells touching it are filled. A bottom slab keeps water above it, and glass vertical slabs make a fish tank wall. A completely filled space holds no water.",
+  "right_title": "How water looks",
+  "steps": [
+    {
+      "kind": "text",
+      "number": false,
+      "text": "Water only shows in the empty cells, never through opaque pieces."
+    },
+    {
+      "kind": "text",
+      "number": false,
+      "text": "Behind glass and other see-through pieces it looks the way it does behind a glass block, whether the glass is in the same space as the water or in the next one."
+    }
+  ]
+}

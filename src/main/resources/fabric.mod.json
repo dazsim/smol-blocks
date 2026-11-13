@@ -26,5 +26,8 @@
         "fabric-api": "*",
         "minecraft": "${minecraft}",
         "java": ">=${java}"
+    },
+    "suggests": {
+        "simplebooks": "*"
     }
 }
