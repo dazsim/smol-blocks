@@ -1,7 +1,7 @@
 mod.id = "smolblocks"
 mod.name = "Smol Blocks"
 mod.group = "com.workshopcraft.smolblocks"
-mod.version = "0.1.0"
+mod.version = "0.1.1"
 mod.author = "workshopcraft"
 mod.description = "Cut any basic block into slabs, quarters and eighths with a saw, and mix them in one space."
 
